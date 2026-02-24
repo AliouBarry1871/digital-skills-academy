@@ -17,6 +17,7 @@ export default function HomePage() {
 
   useEffect(() => {
     async function fetchData() {
+      // On récupère bien toutes les colonnes, dont 'price' et 'payment_link'
       const { data: coursesData } = await supabase
         .from('courses')
         .select('*')
@@ -31,7 +32,6 @@ export default function HomePage() {
     fetchData();
   }, []);
 
-  // Fonction de gestion du clic sur un cours
   const handleCourseClick = (course: any) => {
     if (!user) {
       alert("Veuillez vous connecter pour accéder à nos cours.");
@@ -39,11 +39,11 @@ export default function HomePage() {
       return;
     }
 
+    // Logique de redirection : 
+    // Si payant, on ouvre Stripe. Si gratuit (prix 0 ou null), on va au lecteur.
     if (course.price > 0 && course.payment_link) {
-      // Si le cours est payant, on ouvre le lien Stripe dans un nouvel onglet
       window.open(course.payment_link, '_blank');
     } else {
-      // Si gratuit, on va vers la salle de classe
       router.push(`/courses/${course.id}`);
     }
   };
@@ -62,16 +62,23 @@ export default function HomePage() {
 
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         course.description.toLowerCase().includes(searchTerm.toLowerCase());
+                          course.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'Tous' || course.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
-  if (loading) return <div className="p-20 text-center font-bold text-blue-600 animate-pulse">Chargement de l'académie...</div>;
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+       <div className="text-center font-bold text-blue-600 animate-pulse text-xl">
+         Chargement de l'académie...
+       </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <div className="flex-grow">
+        {/* HERO SECTION */}
         <section className="bg-white border-b border-slate-100 py-16 px-6">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-5xl font-black text-slate-900 mb-6 tracking-tighter">
@@ -81,7 +88,7 @@ export default function HomePage() {
             <div className="relative max-w-2xl mx-auto mt-10 mb-8">
               <input 
                 type="text"
-                placeholder="Rechercher un sujet..."
+                placeholder="Rechercher un sujet (Python, Marketing...)"
                 className="w-full px-8 py-5 bg-slate-100 border-none rounded-[2rem] focus:ring-2 focus:ring-blue-600 outline-none text-lg font-medium shadow-inner"
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -105,6 +112,7 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* COURSES GRID */}
         <main className="max-w-6xl mx-auto p-8 lg:p-12">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredCourses.map((course) => (
@@ -123,6 +131,7 @@ export default function HomePage() {
                       {course.category || 'Général'}
                     </span>
 
+                    {/* Badge Dynamique : PREMIUM si prix > 0 */}
                     {course.price > 0 ? (
                       <span className="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-full text-[10px] font-black border border-amber-200">
                         PREMIUM
@@ -143,17 +152,19 @@ export default function HomePage() {
                 </div>
 
                 <div className="flex flex-col gap-3">
+                  {/* Bouton Dynamique : Affiche le prix si payant */}
                   <button 
                     onClick={() => handleCourseClick(course)}
-                    className={`text-center py-4 rounded-2xl font-bold transition-all shadow-lg ${
+                    className={`text-center py-4 rounded-2xl font-black transition-all shadow-lg ${
                       course.price > 0 
                       ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-amber-100' 
                       : 'bg-slate-900 text-white hover:bg-blue-600 shadow-slate-200'
                     }`}
                   >
-                    {course.price > 0 ? `Acheter - ${course.price}€` : 'Suivre le cours'}
+                    {course.price > 0 ? `ACHETER - ${course.price} FCFA` : 'SUIVRE LE COURS'}
                   </button>
 
+                  {/* Options Admin */}
                   {user && (
                     <button 
                       onClick={() => handleDelete(course.id, course.title)}
@@ -170,39 +181,39 @@ export default function HomePage() {
           {filteredCourses.length === 0 && (
             <div className="text-center py-20">
               <div className="text-5xl mb-4">🕵️‍♂️</div>
-              <p className="text-slate-400 text-xl font-medium">Aucun cours trouvé...</p>
+              <p className="text-slate-400 text-xl font-medium">Aucun cours trouvé dans cette catégorie...</p>
             </div>
           )}
         </main>
       </div>
 
-      {/* SECTION CONTACT (FOOTER) */}
+      {/* FOOTER */}
       <footer className="bg-slate-900 text-white py-16 px-8 mt-20">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
           <div>
             <h3 className="text-2xl font-black mb-4">Digital Skills Academy</h3>
             <p className="text-slate-400 leading-relaxed">
-              La plateforme de référence pour maîtriser les technologies de demain.
+              La plateforme de référence pour maîtriser les technologies de demain et propulser votre carrière.
             </p>
           </div>
           <div>
-            <h4 className="font-bold uppercase tracking-widest text-sm text-blue-400 mb-6">Contact</h4>
+            <h4 className="font-bold uppercase tracking-widest text-sm text-blue-400 mb-6">Contact direct</h4>
             <ul className="space-y-4 text-slate-300">
-              <li>📞 WhatsApp : +221 77 453 22 55</li>
-              <li>📧 Email : mamadoualioubarry1871@gmail.com</li>
+              <li className="flex items-center gap-3">🟢 WhatsApp : <span className="font-bold text-white">+221 77 453 22 55</span></li>
+              <li className="flex items-center gap-3">📧 Email : <span className="font-bold text-white text-xs sm:text-base">mamadoualioubarry1871@gmail.com</span></li>
               <li>📍 Dakar, Sénégal</li>
             </ul>
           </div>
           <div>
-            <h4 className="font-bold uppercase tracking-widest text-sm text-blue-400 mb-6">Support</h4>
-            <p className="text-slate-300 mb-4">Besoin d'aide pour une inscription ?</p>
-            <a href="mailto:support@digital-skills.com" className="bg-blue-600 px-6 py-3 rounded-xl font-bold inline-block hover:bg-blue-700 transition-all">
-              Nous écrire
+            <h4 className="font-bold uppercase tracking-widest text-sm text-blue-400 mb-6">Support technique</h4>
+            <p className="text-slate-300 mb-4">Besoin d'aide pour accéder à vos cours ?</p>
+            <a href="https://wa.me/221774532255" className="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-xl font-bold inline-block transition-all shadow-lg shadow-green-900/20">
+              Chatter sur WhatsApp
             </a>
           </div>
         </div>
         <div className="max-w-6xl mx-auto border-t border-slate-800 mt-12 pt-8 text-center text-slate-500 text-sm">
-          © 2026 Digital Skills Academy. Tous droits réservés.
+          © 2026 Digital Skills Academy. Réalisé avec passion.
         </div>
       </footer>
     </div>
