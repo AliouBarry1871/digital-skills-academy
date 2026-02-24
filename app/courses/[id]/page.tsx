@@ -1,65 +1,102 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-export default function CoursePage() {
+export default function CoursePlayer() {
   const { id } = useParams();
+  const router = useRouter();
   const [course, setCourse] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadCourse() {
-      if (!id) return;
+    async function fetchCourse() {
       const { data, error } = await supabase
         .from('courses')
         .select('*')
         .eq('id', id)
         .single();
-      
-      if (data) setCourse(data);
+
+      if (error || !data) {
+        router.push('/'); // Redirige si le cours n'existe pas
+      } else {
+        setCourse(data);
+      }
       setLoading(false);
     }
-    loadCourse();
-  }, [id]);
+    fetchCourse();
+  }, [id, router]);
 
-  if (loading) return <div className="p-20 text-center font-bold text-blue-600 italic">Chargement du contenu...</div>;
-
-  if (!course) return (
-    <div className="p-20 text-center">
-      <h1 className="text-2xl font-bold text-red-500">Oups ! Cours introuvable.</h1>
-      <Link href="/" className="text-blue-600 underline mt-4 block">Retour à l'accueil</Link>
-    </div>
-  );
+  if (loading) return <div className="p-20 text-center font-bold text-blue-600 animate-pulse">Ouverture de la salle de classe...</div>;
 
   return (
-    <div className="min-h-screen bg-white">
-      <nav className="p-6 border-b">
-        <Link href="/" className="text-blue-600 font-bold tracking-tight">← CATALOGUE DES COURS</Link>
+    <div className="min-h-screen bg-slate-900 text-white">
+      {/* BARRE DE NAVIGATION SIMPLE */}
+      <nav className="p-6 border-b border-slate-800 flex justify-between items-center">
+        <Link href="/" className="text-slate-400 hover:text-white flex items-center gap-2 transition-colors">
+          ← Retour à l'accueil
+        </Link>
+        <span className="bg-blue-600 px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest">
+          En cours de visionnage
+        </span>
       </nav>
 
-      <main className="max-w-5xl mx-auto p-6 md:p-12">
-        <h1 className="text-4xl font-black text-slate-900 mb-8 uppercase tracking-tighter">{course.title}</h1>
-        
-        {/* Lecteur Vidéo Moderne */}
-        <div className="aspect-video bg-slate-900 rounded-[2.5rem] overflow-hidden shadow-2xl mb-10 border-[12px] border-slate-100">
-          {course.video_url ? (
+      <main className="max-w-6xl mx-auto p-6 lg:p-12">
+        {/* LECTEUR VIDÉO */}
+        <div className="relative aspect-video w-full rounded-[2rem] overflow-hidden shadow-2xl bg-black border border-slate-800">
+          {course.price > 0 ? (
+            /* SI LE COURS EST PAYANT : On pourrait mettre une logique ici, 
+               mais pour l'instant on affiche la vidéo ou un message */
             <iframe 
-              className="w-full h-full"
               src={course.video_url}
+              className="absolute inset-0 w-full h-full"
               allowFullScreen
-              title={course.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             ></iframe>
           ) : (
-            <div className="flex items-center justify-center h-full text-slate-400 italic">Vidéo bientôt disponible</div>
+            <iframe 
+              src={course.video_url}
+              className="absolute inset-0 w-full h-full"
+              allowFullScreen
+            ></iframe>
           )}
         </div>
 
-        <div className="max-w-3xl">
-          <h3 className="text-blue-600 font-black text-sm uppercase mb-4 tracking-widest">Description du module</h3>
-          <p className="text-xl text-slate-600 leading-relaxed">{course.description}</p>
+        {/* INFOS DU COURS */}
+        <div className="mt-12 max-w-4xl">
+          <div className="flex items-center gap-4 mb-6">
+             <span className="px-4 py-1.5 bg-slate-800 rounded-full text-blue-400 text-[10px] font-black uppercase tracking-widest">
+               {course.category}
+             </span>
+             {course.price > 0 && (
+               <span className="text-amber-400 font-bold text-sm">Contenu Premium ⭐</span>
+             )}
+          </div>
+
+          <h1 className="text-4xl md:text-5xl font-black mb-6 leading-tight">
+            {course.title}
+          </h1>
+          
+          <div className="prose prose-invert max-w-none text-slate-400 text-lg leading-relaxed">
+            <p>{course.description}</p>
+          </div>
+
+          {/* BOUTON D'ACTION SI PAYANT */}
+          {course.price > 0 && course.payment_link && (
+            <div className="mt-10 p-8 bg-slate-800/50 rounded-[2rem] border border-slate-700">
+              <h3 className="text-xl font-bold mb-4">Ce cours vous plaît ?</h3>
+              <p className="text-slate-400 mb-6">Soutenez l'académie et débloquez les ressources bonus pour seulement {course.price}€.</p>
+              <a 
+                href={course.payment_link}
+                target="_blank"
+                className="inline-block bg-amber-500 hover:bg-amber-600 text-white font-black px-8 py-4 rounded-2xl transition-all"
+              >
+                Acheter la certification
+              </a>
+            </div>
+          )}
         </div>
       </main>
     </div>
