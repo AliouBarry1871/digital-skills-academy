@@ -189,7 +189,7 @@ export default function HomePage() {
             <h4 className="font-bold uppercase tracking-widest text-sm text-blue-400 mb-6">Contact</h4>
             <ul className="space-y-4 text-slate-300">
               <li>📞 WhatsApp : +221 77 453 22 55</li>
-              <li>📧 Email : contact@digital-skills.com</li>
+              <li>📧 Email : mamadoualioubarry1871@gmail.com</li>
               <li>📍 Dakar, Sénégal</li>
             </ul>
           </div>
