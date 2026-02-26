@@ -9,24 +9,40 @@ export default function CoursePlayer() {
   const { id } = useParams();
   const router = useRouter();
   const [course, setCourse] = useState<any>(null);
+  const [lessons, setLessons] = useState<any[]>([]); // Pour stocker la liste des vidéos
+  const [currentLesson, setCurrentLesson] = useState<any>(null); // Vidéo en cours de lecture
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchCourse() {
-      const { data, error } = await supabase
+    async function fetchData() {
+      // 1. Récupérer les infos du cours
+      const { data: courseData, error: courseError } = await supabase
         .from('courses')
         .select('*')
         .eq('id', id)
         .single();
 
-      if (error || !data) {
-        router.push('/'); // Redirige vers l'accueil si le cours n'existe pas
-      } else {
-        setCourse(data);
+      if (courseError || !courseData) {
+        router.push('/');
+        return;
       }
+      setCourse(courseData);
+
+      // 2. Récupérer les leçons du cours (assure-toi d'avoir créé la table 'lessons')
+      const { data: lessonsData } = await supabase
+        .from('lessons')
+        .select('*')
+        .eq('course_id', id)
+        .order('order_index', { ascending: true });
+
+      if (lessonsData && lessonsData.length > 0) {
+        setLessons(lessonsData);
+        setCurrentLesson(lessonsData[0]); // Par défaut, on charge la première leçon
+      }
+      
       setLoading(false);
     }
-    fetchCourse();
+    fetchData();
   }, [id, router]);
 
   if (loading) return (
@@ -40,125 +56,131 @@ export default function CoursePlayer() {
   return (
     <div className="min-h-screen bg-slate-900 text-white pb-20">
       {/* BARRE DE NAVIGATION */}
-      <nav className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
-        <Link href="/" className="text-slate-400 hover:text-white flex items-center gap-2 transition-colors font-medium">
-          ← Retour à l'accueil
+      <nav className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
+        <Link href="/" className="text-slate-400 hover:text-white flex items-center gap-2 transition-colors font-medium text-sm">
+          ← Retour
         </Link>
-        <span className="bg-blue-600/20 text-blue-400 border border-blue-500/30 px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest">
+        <div className="text-center hidden md:block">
+            <h2 className="text-sm font-bold truncate max-w-xs">{course.title}</h2>
+        </div>
+        <span className="bg-blue-600/20 text-blue-400 border border-blue-500/30 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
           Mode Étudiant
         </span>
       </nav>
 
-      <main className="max-w-6xl mx-auto p-6 lg:p-12">
+      <main className="max-w-[1600px] mx-auto p-4 lg:p-8">
         
-        {/* LECTEUR VIDÉO OU MESSAGE DE VERROUILLAGE */}
-        <div className="relative aspect-video w-full rounded-[2.5rem] overflow-hidden shadow-2xl bg-black border border-slate-800">
-          {course.price > 0 ? (
-            /* --- CAS DU COURS PAYANT --- */
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-800/90 p-8 text-center backdrop-blur-sm">
-              <div className="w-20 h-20 bg-amber-500/20 rounded-full flex items-center justify-center mb-6 border border-amber-500/30">
-                <span className="text-4xl">🔒</span>
-              </div>
-              <h2 className="text-3xl font-black mb-4">Contenu Premium</h2>
-              <p className="text-slate-400 mb-8 max-w-md text-lg">
-                Ce cours est réservé aux membres ayant validé leur inscription. 
-                Payez une seule fois pour débloquer l'accès à vie.
-              </p>
-              <a 
-                href={course.payment_link}
-                target="_blank"
-                className="bg-amber-500 hover:bg-amber-600 text-white font-black px-10 py-5 rounded-2xl transition-all transform hover:scale-105 shadow-xl shadow-amber-500/20"
-              >
-                Débloquer le cours ({course.price} FCFA)
-              </a>
-              <p className="mt-6 text-sm text-slate-500 italic">
-                Une fois le paiement effectué, votre accès sera activé manuellement sous 24h.
-              </p>
-            </div>
-          ) : (
-            /* --- CAS DU COURS GRATUIT --- */
-            course.video_url ? (
-              <iframe 
-                src={course.video_url}
-                className="absolute inset-0 w-full h-full"
-                allowFullScreen
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              ></iframe>
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center bg-slate-900 text-slate-500">
-                Vidéo en cours de chargement...
-              </div>
-            )
-          )}
-        </div>
-
-        {/* INFOS DU COURS */}
-        <div className="mt-12 max-w-4xl">
-          <div className="flex items-center gap-4 mb-6">
-             <span className="px-4 py-1.5 bg-slate-800 rounded-full text-blue-400 text-[10px] font-black uppercase tracking-widest border border-slate-700">
-               {course.category}
-             </span>
-             <span className="text-amber-400 font-bold text-sm flex items-center gap-2">
-               <span className="w-2 h-2 bg-amber-400 rounded-full animate-ping"></span>
-               Parcours certifiant ⭐
-             </span>
-          </div>
-
-          <h1 className="text-4xl md:text-6xl font-black mb-8 leading-tight tracking-tighter">
-            {course.title}
-          </h1>
+        <div className="flex flex-col lg:flex-row gap-8">
           
-          <div className="bg-slate-800/30 border border-slate-800 p-8 rounded-[2rem] mb-12">
-            <h3 className="text-xl font-bold mb-4 text-slate-200">À propos de ce cours</h3>
-            <div className="prose prose-invert max-w-none text-slate-400 text-lg leading-relaxed">
-              <p>{course.description}</p>
+          {/* COLONNE GAUCHE : LECTEUR ET INFOS */}
+          <div className="flex-grow">
+            <div className="relative aspect-video w-full rounded-3xl overflow-hidden shadow-2xl bg-black border border-slate-800">
+              {course.price > 0 ? (
+                /* --- CAS DU COURS PAYANT (VERROUILLÉ) --- */
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-800/90 p-8 text-center backdrop-blur-sm">
+                  <span className="text-5xl mb-4">🔒</span>
+                  <h2 className="text-2xl font-black mb-2">Contenu Premium</h2>
+                  <p className="text-slate-400 mb-6 max-w-sm">Payez une seule fois pour débloquer toutes les leçons de ce cours.</p>
+                  <a href={course.payment_link} target="_blank" className="bg-amber-500 hover:bg-amber-600 text-white font-black px-8 py-4 rounded-xl transition-all">
+                    Débloquer pour {course.price} FCFA
+                  </a>
+                </div>
+              ) : (
+                /* --- CAS DU COURS GRATUIT OU DÉBLOQUÉ --- */
+                currentLesson ? (
+                  <iframe 
+                    src={currentLesson.video_url}
+                    className="absolute inset-0 w-full h-full"
+                    allowFullScreen
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  ></iframe>
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-slate-500">
+                    Sélectionnez une leçon pour commencer
+                  </div>
+                )
+              )}
+            </div>
+
+            <div className="mt-8">
+              <h1 className="text-3xl font-black mb-4">{currentLesson?.title || course.title}</h1>
+              <div className="flex gap-3 mb-8">
+                <span className="px-3 py-1 bg-slate-800 rounded-lg text-blue-400 text-xs font-bold uppercase">{course.category}</span>
+                <span className="px-3 py-1 bg-slate-800 rounded-lg text-amber-400 text-xs font-bold uppercase">Formation 2024</span>
+              </div>
+
+              {/* SECTION RESSOURCES */}
+              <div className="bg-slate-800/40 border border-slate-800 p-6 rounded-2xl mb-8">
+                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                  <span className="text-xl">📁</span> Ressources de la leçon
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <a href="#" className="flex items-center justify-between p-4 bg-slate-900/50 rounded-xl border border-slate-700 hover:border-blue-500 transition-colors group">
+                    <span className="text-sm font-medium text-slate-300">Code Source Final</span>
+                    <span className="text-blue-500 group-hover:translate-x-1 transition-transform">➔</span>
+                  </a>
+                  <a href="#" className="flex items-center justify-between p-4 bg-slate-900/50 rounded-xl border border-slate-700 hover:border-blue-500 transition-colors group">
+                    <span className="text-sm font-medium text-slate-300">Support de cours (PDF)</span>
+                    <span className="text-blue-500 group-hover:translate-x-1 transition-transform">➔</span>
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* --- NOUVELLE SECTION CERTIFICATION --- */}
-          <div className="relative p-10 bg-gradient-to-br from-indigo-600 via-blue-700 to-blue-800 rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/10">
-            {/* Décoration d'arrière-plan */}
-            <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-            
-            <div className="relative flex flex-col md:flex-row items-center gap-8">
-              <div className="flex-shrink-0 w-24 h-24 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center text-5xl shadow-inner border border-white/20">
-                🎓
-              </div>
-              
-              <div className="flex-grow text-center md:text-left">
-                <h3 className="text-2xl md:text-3xl font-black text-white mb-2 tracking-tight">
-                  Obtenez votre Certificat Officiel
+          {/* COLONNE DROITE : PLAYLIST (LISTE DES VIDÉOS) */}
+          <div className="w-full lg:w-[400px] shrink-0">
+            <div className="bg-slate-800/40 border border-slate-800 rounded-3xl overflow-hidden sticky top-24">
+              <div className="p-6 border-b border-slate-800 bg-slate-800/50">
+                <h3 className="font-black text-xl flex items-center gap-2">
+                  <span className="text-blue-500">📑</span> Sommaire
                 </h3>
-                <p className="text-blue-100 text-lg leading-relaxed max-w-xl">
-                  Valorisez vos nouvelles compétences ! Une fois cette formation terminée, vous pouvez commander votre certificat signé par **Digital Skills Academy** pour l'ajouter à votre CV ou LinkedIn.
-                </p>
+                <p className="text-xs text-slate-500 mt-1 uppercase tracking-widest font-bold">{lessons.length} Leçons disponibles</p>
               </div>
 
-              <div className="flex-shrink-0">
-                <a 
-                  href={course.payment_link} // Utilise le lien de paiement pour le certificat
-                  target="_blank"
-                  className="inline-block bg-white text-blue-800 hover:bg-slate-100 font-black px-8 py-4 rounded-2xl transition-all transform hover:scale-105 shadow-xl hover:shadow-white/10 active:scale-95"
-                >
-                  Commander (Certificat)
+              <div className="max-h-[500px] overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                {lessons.map((lesson, index) => (
+                  <button
+                    key={lesson.id}
+                    onClick={() => course.price === 0 && setCurrentLesson(lesson)}
+                    className={`w-full flex items-start gap-4 p-4 rounded-2xl transition-all text-left ${
+                      currentLesson?.id === lesson.id 
+                        ? 'bg-blue-600 shadow-lg shadow-blue-600/20 text-white' 
+                        : 'hover:bg-slate-700/50 text-slate-400'
+                    } ${course.price > 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                  >
+                    <span className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center font-bold text-xs ${
+                      currentLesson?.id === lesson.id ? 'bg-white/20' : 'bg-slate-900'
+                    }`}>
+                      {index + 1}
+                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold leading-tight">{lesson.title}</span>
+                      <span className="text-[10px] mt-1 opacity-60 uppercase font-black">{lesson.duration || 'Vidéo'}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* BLOC CERTIFICAT DANS LA SIDEBAR */}
+              <div className="p-6 bg-gradient-to-br from-blue-600 to-indigo-700 m-4 rounded-2xl shadow-xl">
+                <h4 className="font-bold text-sm mb-2">Prêt pour le certificat ?</h4>
+                <p className="text-[11px] text-blue-100 mb-4 leading-relaxed">Terminez toutes les leçons pour commander votre diplôme.</p>
+                <a href={course.payment_link} target="_blank" className="block text-center bg-white text-blue-700 text-xs font-black py-3 rounded-xl hover:bg-slate-100 transition-colors">
+                  COMMANDER LE CERTIFICAT
                 </a>
               </div>
             </div>
-            
-            <div className="mt-6 pt-6 border-t border-white/10 flex flex-wrap justify-center md:justify-start gap-6 text-sm font-bold text-blue-200 uppercase tracking-widest">
-              <span className="flex items-center gap-2">✅ Format PDF HD</span>
-              <span className="flex items-center gap-2">✅ ID de vérification</span>
-              <span className="flex items-center gap-2">✅ Signé numériquement</span>
-            </div>
           </div>
 
-          {/* RAPPEL SUPPORT */}
-          <div className="mt-12 p-8 border-2 border-dashed border-slate-700 rounded-[2rem] text-center">
-            <p className="text-slate-500 font-medium">
-              Une question sur la certification ? Notre équipe vous répond sur WhatsApp.
-            </p>
-          </div>
         </div>
+
+        {/* SECTION CERTIFICATION (VERSION LARGE) */}
+        <div className="mt-12 p-8 bg-slate-800/20 border border-slate-800 rounded-[2.5rem]">
+           <h3 className="text-xl font-bold mb-4 text-slate-200 uppercase tracking-widest text-sm">Description du programme</h3>
+           <p className="text-slate-400 leading-relaxed">{course.description}</p>
+        </div>
+
       </main>
     </div>
   );
