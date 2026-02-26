@@ -53,6 +53,7 @@ export default function CoursePlayer() {
 
   return (
     <div className="min-h-screen bg-slate-900 text-white pb-20">
+      {/* BARRE DE NAVIGATION */}
       <nav className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
         <Link href="/" className="text-slate-400 hover:text-white flex items-center gap-2 transition-colors font-medium text-sm">
           ← Retour
@@ -69,6 +70,7 @@ export default function CoursePlayer() {
         <div className="flex flex-col lg:flex-row gap-8">
           
           <div className="flex-grow">
+            {/* LECTEUR VIDÉO */}
             <div className="relative aspect-video w-full rounded-3xl overflow-hidden shadow-2xl bg-black border border-slate-800">
               {course.price > 0 ? (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-800/90 p-8 text-center backdrop-blur-sm">
@@ -102,27 +104,58 @@ export default function CoursePlayer() {
                 <span className="px-3 py-1 bg-slate-800 rounded-lg text-amber-400 text-xs font-bold uppercase">Formation 2026</span>
               </div>
 
-              {/* --- SECTION RESSOURCES MISE À JOUR --- */}
-              <div className="bg-slate-800/40 border border-slate-800 p-6 rounded-2xl mb-8">
-                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                  <span className="text-xl">📚</span> Bibliothèque de ressources
+              {/* --- SECTION INTERACTIVE : QUIZ ET PDF INTÉGRÉS --- */}
+              <div className="space-y-10 mt-12">
+                <h3 className="text-2xl font-bold flex items-center gap-3">
+                  <span className="bg-blue-500 p-2 rounded-lg text-white text-lg">🛠️</span> 
+                  Ateliers & Ressources
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Guide PDF de l'ANSSI */}
-                  <a href="https://www.ssi.gouv.fr/uploads/2017/01/guide_cpme_bonnes_pratiques.pdf" target="_blank" className="flex items-center justify-between p-4 bg-slate-900/50 rounded-xl border border-slate-700 hover:border-blue-500 transition-colors group">
-                    <span className="text-sm font-medium text-slate-300">📖 Guide Bonnes Pratiques (PDF)</span>
-                    <span className="text-blue-500 group-hover:translate-x-1 transition-transform">➔</span>
-                  </a>
-                  {/* Test de Phishing Google */}
-                  <a href="https://phishingquiz.withgoogle.com/" target="_blank" className="flex items-center justify-between p-4 bg-slate-900/50 rounded-xl border border-slate-700 hover:border-blue-500 transition-colors group">
-                    <span className="text-sm font-medium text-slate-300">🎯 Quiz interactif Phishing</span>
-                    <span className="text-blue-500 group-hover:translate-x-1 transition-transform">➔</span>
-                  </a>
+
+                <div className="grid grid-cols-1 gap-10">
+                  {/* LE QUIZ GOOGLE INTÉGRÉ */}
+                  <div className="bg-slate-800/40 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+                    <div className="p-4 bg-slate-800/60 border-b border-slate-700 flex justify-between items-center">
+                      <span className="font-bold text-sm flex items-center gap-2">
+                        <span className="text-blue-400">●</span> Quiz interactif : Testez vos réflexes
+                      </span>
+                    </div>
+                    <div className="aspect-[16/10] w-full bg-white">
+                      <iframe 
+                        src="https://phishingquiz.withgoogle.com/" 
+                        className="w-full h-full"
+                        title="Quiz Phishing"
+                      ></iframe>
+                    </div>
+                  </div>
+
+                  {/* LE GUIDE PDF INTÉGRÉ */}
+                  <div className="bg-slate-800/40 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+                    <div className="p-4 bg-slate-800/60 border-b border-slate-700 flex justify-between items-center">
+                      <span className="font-bold text-sm flex items-center gap-2">
+                        <span className="text-blue-400">●</span> Guide Officiel (Lecture directe)
+                      </span>
+                      <a 
+                        href="https://www.ssi.gouv.fr/uploads/2017/01/guide_cpme_bonnes_pratiques.pdf" 
+                        target="_blank" 
+                        className="text-[10px] bg-slate-700 px-3 py-1 rounded-full hover:bg-slate-600 transition-colors"
+                      >
+                        PLEIN ÉCRAN ↗
+                      </a>
+                    </div>
+                    <div className="h-[600px] w-full bg-slate-900">
+                      <iframe 
+                        src="https://www.ssi.gouv.fr/uploads/2017/01/guide_cpme_bonnes_pratiques.pdf#toolbar=0" 
+                        className="w-full h-full"
+                        title="Guide PDF"
+                      ></iframe>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
+          {/* SOMMAIRE À DROITE */}
           <div className="w-full lg:w-[400px] shrink-0">
             <div className="bg-slate-800/40 border border-slate-800 rounded-3xl overflow-hidden sticky top-24">
               <div className="p-6 border-b border-slate-800 bg-slate-800/50">
@@ -168,6 +201,7 @@ export default function CoursePlayer() {
 
         </div>
 
+        {/* DESCRIPTION */}
         <div className="mt-12 p-8 bg-slate-800/20 border border-slate-800 rounded-[2.5rem]">
            <h3 className="text-xl font-bold mb-4 text-slate-200 uppercase tracking-widest text-sm">Description du programme</h3>
            <p className="text-slate-400 leading-relaxed">{course.description}</p>
