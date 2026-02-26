@@ -9,13 +9,12 @@ export default function CoursePlayer() {
   const { id } = useParams();
   const router = useRouter();
   const [course, setCourse] = useState<any>(null);
-  const [lessons, setLessons] = useState<any[]>([]); // Pour stocker la liste des vidéos
-  const [currentLesson, setCurrentLesson] = useState<any>(null); // Vidéo en cours de lecture
+  const [lessons, setLessons] = useState<any[]>([]); 
+  const [currentLesson, setCurrentLesson] = useState<any>(null); 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
-      // 1. Récupérer les infos du cours
       const { data: courseData, error: courseError } = await supabase
         .from('courses')
         .select('*')
@@ -28,7 +27,6 @@ export default function CoursePlayer() {
       }
       setCourse(courseData);
 
-      // 2. Récupérer les leçons du cours (assure-toi d'avoir créé la table 'lessons')
       const { data: lessonsData } = await supabase
         .from('lessons')
         .select('*')
@@ -37,7 +35,7 @@ export default function CoursePlayer() {
 
       if (lessonsData && lessonsData.length > 0) {
         setLessons(lessonsData);
-        setCurrentLesson(lessonsData[0]); // Par défaut, on charge la première leçon
+        setCurrentLesson(lessonsData[0]);
       }
       
       setLoading(false);
@@ -55,7 +53,6 @@ export default function CoursePlayer() {
 
   return (
     <div className="min-h-screen bg-slate-900 text-white pb-20">
-      {/* BARRE DE NAVIGATION */}
       <nav className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
         <Link href="/" className="text-slate-400 hover:text-white flex items-center gap-2 transition-colors font-medium text-sm">
           ← Retour
@@ -69,14 +66,11 @@ export default function CoursePlayer() {
       </nav>
 
       <main className="max-w-[1600px] mx-auto p-4 lg:p-8">
-        
         <div className="flex flex-col lg:flex-row gap-8">
           
-          {/* COLONNE GAUCHE : LECTEUR ET INFOS */}
           <div className="flex-grow">
             <div className="relative aspect-video w-full rounded-3xl overflow-hidden shadow-2xl bg-black border border-slate-800">
               {course.price > 0 ? (
-                /* --- CAS DU COURS PAYANT (VERROUILLÉ) --- */
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-800/90 p-8 text-center backdrop-blur-sm">
                   <span className="text-5xl mb-4">🔒</span>
                   <h2 className="text-2xl font-black mb-2">Contenu Premium</h2>
@@ -86,7 +80,6 @@ export default function CoursePlayer() {
                   </a>
                 </div>
               ) : (
-                /* --- CAS DU COURS GRATUIT OU DÉBLOQUÉ --- */
                 currentLesson ? (
                   <iframe 
                     src={currentLesson.video_url}
@@ -106,21 +99,23 @@ export default function CoursePlayer() {
               <h1 className="text-3xl font-black mb-4">{currentLesson?.title || course.title}</h1>
               <div className="flex gap-3 mb-8">
                 <span className="px-3 py-1 bg-slate-800 rounded-lg text-blue-400 text-xs font-bold uppercase">{course.category}</span>
-                <span className="px-3 py-1 bg-slate-800 rounded-lg text-amber-400 text-xs font-bold uppercase">Formation 2024</span>
+                <span className="px-3 py-1 bg-slate-800 rounded-lg text-amber-400 text-xs font-bold uppercase">Formation 2026</span>
               </div>
 
-              {/* SECTION RESSOURCES */}
+              {/* --- SECTION RESSOURCES MISE À JOUR --- */}
               <div className="bg-slate-800/40 border border-slate-800 p-6 rounded-2xl mb-8">
                 <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                  <span className="text-xl">📁</span> Ressources de la leçon
+                  <span className="text-xl">📚</span> Bibliothèque de ressources
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <a href="#" className="flex items-center justify-between p-4 bg-slate-900/50 rounded-xl border border-slate-700 hover:border-blue-500 transition-colors group">
-                    <span className="text-sm font-medium text-slate-300">Code Source Final</span>
+                  {/* Guide PDF de l'ANSSI */}
+                  <a href="https://www.ssi.gouv.fr/uploads/2017/01/guide_cpme_bonnes_pratiques.pdf" target="_blank" className="flex items-center justify-between p-4 bg-slate-900/50 rounded-xl border border-slate-700 hover:border-blue-500 transition-colors group">
+                    <span className="text-sm font-medium text-slate-300">📖 Guide Bonnes Pratiques (PDF)</span>
                     <span className="text-blue-500 group-hover:translate-x-1 transition-transform">➔</span>
                   </a>
-                  <a href="#" className="flex items-center justify-between p-4 bg-slate-900/50 rounded-xl border border-slate-700 hover:border-blue-500 transition-colors group">
-                    <span className="text-sm font-medium text-slate-300">Support de cours (PDF)</span>
+                  {/* Test de Phishing Google */}
+                  <a href="https://phishingquiz.withgoogle.com/" target="_blank" className="flex items-center justify-between p-4 bg-slate-900/50 rounded-xl border border-slate-700 hover:border-blue-500 transition-colors group">
+                    <span className="text-sm font-medium text-slate-300">🎯 Quiz interactif Phishing</span>
                     <span className="text-blue-500 group-hover:translate-x-1 transition-transform">➔</span>
                   </a>
                 </div>
@@ -128,7 +123,6 @@ export default function CoursePlayer() {
             </div>
           </div>
 
-          {/* COLONNE DROITE : PLAYLIST (LISTE DES VIDÉOS) */}
           <div className="w-full lg:w-[400px] shrink-0">
             <div className="bg-slate-800/40 border border-slate-800 rounded-3xl overflow-hidden sticky top-24">
               <div className="p-6 border-b border-slate-800 bg-slate-800/50">
@@ -162,12 +156,11 @@ export default function CoursePlayer() {
                 ))}
               </div>
 
-              {/* BLOC CERTIFICAT DANS LA SIDEBAR */}
               <div className="p-6 bg-gradient-to-br from-blue-600 to-indigo-700 m-4 rounded-2xl shadow-xl">
                 <h4 className="font-bold text-sm mb-2">Prêt pour le certificat ?</h4>
-                <p className="text-[11px] text-blue-100 mb-4 leading-relaxed">Terminez toutes les leçons pour commander votre diplôme.</p>
+                <p className="text-[11px] text-blue-100 mb-4 leading-relaxed">Terminez toutes les leçons pour obtenir votre diplôme DSA.</p>
                 <a href={course.payment_link} target="_blank" className="block text-center bg-white text-blue-700 text-xs font-black py-3 rounded-xl hover:bg-slate-100 transition-colors">
-                  COMMANDER LE CERTIFICAT
+                  DÉBLOQUER LE CERTIFICAT
                 </a>
               </div>
             </div>
@@ -175,12 +168,10 @@ export default function CoursePlayer() {
 
         </div>
 
-        {/* SECTION CERTIFICATION (VERSION LARGE) */}
         <div className="mt-12 p-8 bg-slate-800/20 border border-slate-800 rounded-[2.5rem]">
            <h3 className="text-xl font-bold mb-4 text-slate-200 uppercase tracking-widest text-sm">Description du programme</h3>
            <p className="text-slate-400 leading-relaxed">{course.description}</p>
         </div>
-
       </main>
     </div>
   );
