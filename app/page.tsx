@@ -8,6 +8,8 @@ import { supabase } from '@/lib/supabase';
 
 import { useRouter } from 'next/navigation';
 
+import { DEFAULT_COURSES } from '@/lib/courses-data';
+
 
 
 export default function HomePage() {
@@ -34,21 +36,53 @@ export default function HomePage() {
 
     async function fetchData() {
 
-      const { data: coursesData } = await supabase
+      let loadedCourses: any[] = [];
 
-        .from('courses')
+      try {
 
-        .select('*')
+        const { data: coursesData } = await supabase
 
-        .order('created_at', { ascending: false });
+          .from('courses')
 
-      
+          .select('*')
+
+          .order('created_at', { ascending: false });
+
+        
+
+        if (coursesData && coursesData.length > 0) {
+
+          const existingIds = new Set(coursesData.map((c: any) => c.id));
+
+          loadedCourses = [
+
+            ...coursesData,
+
+            ...DEFAULT_COURSES.filter(c => !existingIds.has(c.id)),
+
+          ];
+
+        } else {
+
+          loadedCourses = DEFAULT_COURSES;
+
+        }
+
+      } catch (err) {
+
+        console.warn("Supabase fetch failed, using default courses", err);
+
+        loadedCourses = DEFAULT_COURSES;
+
+      }
+
+
 
       const { data: { user } } = await supabase.auth.getUser();
 
       
 
-      if (coursesData) setCourses(coursesData);
+      setCourses(loadedCourses);
 
       setUser(user);
 
@@ -63,18 +97,6 @@ export default function HomePage() {
 
 
   const handleCourseClick = (course: any) => {
-
-    if (!user) {
-
-      alert("Veuillez vous connecter pour accéder à nos cours.");
-
-      router.push('/login');
-
-      return;
-
-    }
-
-
 
     if (course.price > 0 && course.payment_link) {
 
@@ -254,17 +276,17 @@ export default function HomePage() {
 
                     {course.price > 0 ? (
 
-                      <span className="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-full text-[10px] font-black border border-amber-200">
+                      <span className="bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 px-3.5 py-1.5 rounded-full text-[10px] font-black tracking-wider shadow-sm flex items-center gap-1">
 
-                        PREMIUM
+                        <span>👑</span> MASTERCLASS EXPERT
 
                       </span>
 
                     ) : (
 
-                      <span className="bg-slate-50 text-slate-400 px-3 py-1.5 rounded-full text-[10px] font-bold">
+                      <span className="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-[10px] font-black border border-emerald-200">
 
-                        OFFERT
+                        FORMATION OFFERTE
 
                       </span>
 
@@ -272,17 +294,50 @@ export default function HomePage() {
 
                   </div>
 
-                  <h2 className="text-2xl font-bold text-slate-800 mb-4 leading-tight group-hover:text-blue-600 transition-colors">
+                  <h2 className="text-2xl font-bold text-slate-800 mb-3 leading-tight group-hover:text-blue-600 transition-colors">
 
                     {course.title}
 
                   </h2>
 
-                  <p className="text-slate-500 mb-8 line-clamp-3 leading-relaxed">
+                  <p className="text-slate-500 mb-4 line-clamp-3 leading-relaxed text-sm">
 
                     {course.description}
 
                   </p>
+
+                  {/* AVANTAGES EXCLUSIFS POUR MASTERCLASS PAYANTE */}
+                  {course.premium_features && course.premium_features.length > 0 && (
+                    <div className="mb-5 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-1.5">
+                      <span className="text-[10px] font-black uppercase text-amber-600 tracking-wider block mb-1">
+                        Inclus dans cette formation d'élite :
+                      </span>
+                      {course.premium_features.slice(0, 3).map((feat: string, i: number) => (
+                        <div key={i} className="text-xs text-slate-700 flex items-center gap-2">
+                          <span className="text-emerald-500 font-bold">✓</span>
+                          <span className="line-clamp-1">{feat}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap items-center gap-2 mb-6">
+                    {course.price > 0 ? (
+                      <span className="text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 rounded-xl flex items-center gap-1.5">
+                        <span>💎</span> Accès Illimité + Certification
+                      </span>
+                    ) : (
+                      <span className="text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 px-3 py-1 rounded-xl flex items-center gap-1.5">
+                        <span>🎓</span> Certificat disponible : 10 000 FCFA
+                      </span>
+                    )}
+                    <span className="text-[11px] font-bold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-xl">
+                      📥 Supports PDF Inclus
+                    </span>
+                    <span className="text-[11px] font-bold bg-blue-50 text-blue-700 px-2.5 py-1 rounded-xl">
+                      🎥 100% en Français
+                    </span>
+                  </div>
 
                 </div>
 
@@ -296,7 +351,7 @@ export default function HomePage() {
 
                       course.price > 0 
 
-                      ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-amber-100' 
+                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 shadow-amber-200 hover:scale-[1.02]' 
 
                       : 'bg-slate-900 text-white hover:bg-blue-600 shadow-slate-200'
 
@@ -304,7 +359,7 @@ export default function HomePage() {
 
                   >
 
-                    {course.price > 0 ? `ACHETER - ${course.price} FCFA` : 'SUIVRE LE COURS'}
+                    {course.price > 0 ? `REJOINDRE LA MASTERCLASS - ${course.price.toLocaleString('fr-FR')} FCFA` : 'COMMENCER LE COURS'}
 
                   </button>
 
