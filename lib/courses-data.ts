@@ -221,12 +221,12 @@ export const DEFAULT_COURSES: Course[] = [
   },
 
   // =========================================================================
-  // 3. PYTHON : BASES & FONDATIONS (100% EN FRANÇAIS - GRAVEN - OFFERT)
+  // 3. ALGORITHMES & PROGRAMMATION PYTHON (100% EN FRANÇAIS - GRAVEN - OFFERT)
   // =========================================================================
   {
     id: 'python-debutant-avance',
-    title: 'Python : Les Fondamentaux de la Programmation',
-    description: 'Initiez-vous à la programmation avec le cours en français de référence. Apprenez la logique du code, la syntaxe claire de Python, la manipulation des variables, des conditions et des boucles.',
+    title: 'Algorithmes & Programmation Python : Les Fondamentaux Débutant',
+    description: 'Apprenez la logique algorithmique et les bases solides de la programmation avec Python en français. Maîtrisez les concepts fondamentaux : variables, types de données, structures conditionnelles (if / else), boucles (for, while) et fonctions pour concevoir vos premiers algorithmes opérationnels.',
     category: 'Python',
     price: 0,
     certificate_price: 10000,
@@ -237,32 +237,32 @@ export const DEFAULT_COURSES: Course[] = [
     lessons: [
       {
         id: 'py-fr-1',
-        title: 'Module 1 : Apprendre Python - Les Bases et Prérequis Indispensables',
-        description: 'Installation de Python, prise en main de l\'interpréteur et écriture de vos premières lignes de commande.',
+        title: 'Module 1 : Introduction à l\'Algorithmique et Prise en main de Python',
+        description: 'Comprendre ce qu\'est un algorithme, installer Python et l\'éditeur de code, et exécuter vos premières instructions.',
         video_url: 'https://www.youtube.com/embed/psaDHhZ0cPs',
         duration: '15 min',
         order_index: 1,
       },
       {
         id: 'py-fr-2',
-        title: 'Module 2 : Variables, Types de Données et Opérations de Base',
-        description: 'Comprendre et stocker des nombres, textes et booléens, et réaliser des calculs dynamiques.',
+        title: 'Module 2 : Variables, Types de Données et Calculs Algorithmiques',
+        description: 'Stocker des informations (nombres, chaînes de caractères, booléens) et manipuler les opérations arithmétiques.',
         video_url: 'https://www.youtube.com/embed/nvyX8JfoOWY',
         duration: '18 min',
         order_index: 2,
       },
       {
         id: 'py-fr-3',
-        title: 'Module 3 : Structures Logiques, Conditions et Algorithmes',
-        description: 'Prendre des décisions dans vos programmes grâce aux conditions if / else et aux opérateurs logiques.',
+        title: 'Module 3 : Structures Logiques, Conditions et Algorithmes de Décision',
+        description: 'Écrire des algorithmes capables de prendre des décisions avec if, elif et else, et opérateurs logiques.',
         video_url: 'https://www.youtube.com/embed/o7M-drtx_AQ',
         duration: '25 min',
         order_index: 3,
       },
       {
         id: 'py-fr-4',
-        title: 'Module 4 : Grand Projet Pratique et Consolidation des Acquis',
-        description: 'Mise en application immédiate des notions acquises à travers un tutoriel de programmation guidé.',
+        title: 'Module 4 : Boucles, Parcours de Données et Projet Algorithmique Pratique',
+        description: 'Répéter des instructions avec les boucles while et for, et réaliser un mini-programme pas-à-pas.',
         video_url: 'https://www.youtube.com/embed/oUJolR5bX6g',
         duration: '22 min',
         order_index: 4,
@@ -309,16 +309,16 @@ export const DEFAULT_COURSES: Course[] = [
   },
 
   // =========================================================================
-  // 4. MASTERCLASS PYTHON AVANCÉ & DATA SCIENCE (PAYANT - 35 000 FCFA)
+  // 4. MASTERCLASS ALGORITHMES AVANCÉS, PYTHON POO & DATA (PAYANT - 35 000 FCFA)
   // =========================================================================
   {
     id: 'masterclass-python-avance-data',
-    title: 'Masterclass Expert : Python Avancé, POO & Intelligence Artificielle',
-    description: 'Propulsez vos compétences au niveau ingénieur logiciel. Maîtrisez la Programmation Orientée Objet (POO), la création d\'interfaces graphiques complètes, l\'analyse de données avec NumPy/Pandas et l\'initiation concrète au Machine Learning.',
+    title: 'Masterclass Expert : Algorithmes Avancés, Python POO & Data Science',
+    description: 'Formation d\'élite en programmation et algorithmique avancée. Maîtrisez la Programmation Orientée Objet (POO), l\'architecture logicielle, les design patterns, le traitement de données avec NumPy et les algorithmes de Machine Learning.',
     category: 'Python',
     price: 35000,
     certificate_price: 10000,
-    payment_link: 'https://wa.me/221774532255?text=Bonjour,%20je%20souhaite%20m%27inscrire%20à%20la%20Masterclass%20Python%20Avancé%20(35%20000%20FCFA)',
+    payment_link: 'https://wa.me/221774532255?text=Bonjour,%20je%20souhaite%20m%27inscrire%20à%20la%20Masterclass%20Algorithmes%20Avancés%20Python%20(35%20000%20FCFA)',
     level: 'Niveau Avancé • Professionnel',
     total_duration: '2h 50min',
     badge: '👑 MASTERCLASS ÉLITE • 35 000 FCFA',
@@ -404,12 +404,12 @@ export const DEFAULT_COURSES: Course[] = [
   },
 
   // =========================================================================
-  // 5. DÉVELOPPEMENT WEB MODERNE (HTML5 / CSS3 EN FRANÇAIS - OFFERT)
+  // 5. DÉVELOPPEMENT WEB : CRÉATION DE SITES INTERNET (HTML5 / CSS3 - OFFERT)
   // =========================================================================
   {
     id: 'developpement-web-moderne',
-    title: 'Développement Web Moderne : HTML5 & CSS3',
-    description: 'Apprenez à concevoir des pages web élégantes, bien structurées et responsives. Maîtrisez le balisage sémantique HTML5 moderne et le stylisme CSS avec les cours en français de Pierre Giraud et Grafikart.',
+    title: 'Développement Web : Création de Sites Internet (HTML5 & CSS3)',
+    description: 'Apprenez à concevoir et coder des sites internet modernes, professionnels et responsives. Maîtrisez le balisage sémantique HTML5, le stylisme CSS3, Flexbox et les règles professionnelles de mise en page web.',
     category: 'Développement',
     price: 0,
     certificate_price: 10000,
@@ -675,12 +675,12 @@ export const DEFAULT_COURSES: Course[] = [
   },
 
   // =========================================================================
-  // 8. MARKETING DIGITAL : FONDATIONS & STRATÉGIE (100% EN FRANÇAIS - OFFERT)
+  // 8. MARKETING DIGITAL : STRATÉGIE & VENTE EN LIGNE (100% EN FRANÇAIS - OFFERT)
   // =========================================================================
   {
     id: 'marketing-digital-acquisition',
-    title: 'Marketing Digital : Stratégie & Acquisition Client',
-    description: 'Comprenez les leviers qui permettent d\'attirer des clients sur Internet. Définition du Persona idéal, stratégie de contenu sur les réseaux sociaux et mise en place d\'un tunnel de conversion efficace.',
+    title: 'Marketing Digital : Stratégie d\'Acquisition & Vente en Ligne',
+    description: 'Comprenez et appliquez les véritables stratégies du webmarketing pour attirer des clients et développer votre activité. Maîtrisez la méthode du Persona, le positionnement de marque, le contenu sur les réseaux sociaux et la mise en place d\'un tunnel de conversion client.',
     category: 'Marketing Digital',
     price: 0,
     certificate_price: 10000,
@@ -772,89 +772,118 @@ export function getAllCourses(): Course[] {
 }
 
 export function syncCourseWithSupabase(courseData: any, lessonsData?: any[]): Course {
-  const existing = DEFAULT_COURSES.find(
-    c => c.id === courseData.id || c.title.toLowerCase().trim() === courseData.title?.toLowerCase().trim()
-  );
+  if (!courseData) return DEFAULT_COURSES[0];
 
-  if (existing) {
-    return {
-      ...existing,
-      ...courseData,
-      lessons: (lessonsData && lessonsData.length > 0) ? lessonsData.map((l, index) => ({
-        id: l.id || `lesson-${index}`,
-        title: l.title || `Leçon ${index + 1}`,
-        description: l.description || existing.lessons[index]?.description || '',
-        video_url: l.video_url || existing.lessons[index]?.video_url || courseData.video_url || '',
-        duration: l.duration || existing.lessons[index]?.duration || '15 min',
-        order_index: l.order_index ?? index + 1,
-      })) : existing.lessons,
-      pdfs: existing.pdfs,
-    };
+  const id = (courseData.id || '').toString();
+  const title = (courseData.title || '').toString();
+  const titleLower = title.toLowerCase();
+  const catLower = (courseData.category || '').toLowerCase();
+
+  // 1. Recherche directe par ID
+  let template = DEFAULT_COURSES.find(c => c.id === id);
+
+  // 2. Recherche par titre exact
+  if (!template) {
+    template = DEFAULT_COURSES.find(c => c.title.toLowerCase().trim() === titleLower.trim());
   }
 
-  const lessons: Lesson[] = (lessonsData && lessonsData.length > 0)
-    ? lessonsData.map((l, i) => ({
-        id: l.id || `l-${i}`,
-        title: l.title || `Leçon ${i + 1}`,
-        description: l.description || 'Contenu pédagogique officiel du module.',
-        video_url: formatYouTubeEmbedUrl(l.video_url || courseData.video_url || ''),
-        duration: l.duration || '15 min',
+  // 3. Résolution intelligente par sujet pour garantir une cohérence 100% absolue
+  if (!template) {
+    if (
+      titleLower.includes('python') || 
+      titleLower.includes('algorithme') || 
+      titleLower.includes('programmation') ||
+      catLower.includes('python') || 
+      id === 'be2d9e07-553c-44ea-bf9b-e9461545bbe4' || 
+      id === '84059717-9499-4e39-8c3e-dc7f207c38c3' ||
+      id === 'b74c5e98-cc1b-4c21-bbbe-da98e6008a96'
+    ) {
+      // Déterminer s'il s'agit d'une masterclass avancée ou d'une initiation
+      template = (courseData.price && courseData.price > 0)
+        ? DEFAULT_COURSES.find(c => c.id === 'masterclass-python-avance-data')
+        : DEFAULT_COURSES.find(c => c.id === 'python-debutant-avance');
+    } else if (
+      titleLower.includes('web') || 
+      titleLower.includes('html') || 
+      titleLower.includes('css') || 
+      titleLower.includes('site') || 
+      titleLower.includes('next') || 
+      catLower.includes('développement') || 
+      id === 'f39be5ec-bced-4dc4-9ea1-3ba2b6ab64f4' || 
+      id === '5c156770-b542-4b92-9738-35fafbea0fbe'
+    ) {
+      template = DEFAULT_COURSES.find(c => c.id === 'developpement-web-moderne');
+    } else if (
+      titleLower.includes('marketing') || 
+      titleLower.includes('growth') || 
+      titleLower.includes('vente') || 
+      titleLower.includes('acquisition') || 
+      catLower.includes('marketing') || 
+      id === 'ede9836c-2794-443b-a01b-9171c2d102ea'
+    ) {
+      template = DEFAULT_COURSES.find(c => c.id === 'marketing-digital-acquisition');
+    } else if (
+      titleLower.includes('excel') || 
+      titleLower.includes('bureau') || 
+      titleLower.includes('collaboratif') || 
+      titleLower.includes('workspace') || 
+      catLower.includes('bureautique') || 
+      id === '3535c639-9e9c-4b22-842b-76c19c92f953'
+    ) {
+      template = (courseData.price && courseData.price > 0)
+        ? DEFAULT_COURSES.find(c => c.id === 'masterclass-excel-avance-dashboards')
+        : DEFAULT_COURSES.find(c => c.id === 'bureautique-excel-fondamentaux');
+    } else if (
+      titleLower.includes('cyber') || 
+      titleLower.includes('sécurité') || 
+      titleLower.includes('securite') || 
+      titleLower.includes('hacking') || 
+      catLower.includes('cyber') || 
+      id === '0b416895-1bd3-424a-bd0f-0f56c08cde3e' || 
+      id === 'aa9d2d88-1f47-4e7b-9507-fada97ae3454' ||
+      id === 'e1013431-5f2a-4f9d-8fd0-b65d30ebedfe'
+    ) {
+      template = (courseData.price && courseData.price > 0)
+        ? DEFAULT_COURSES.find(c => c.id === 'masterclass-hacking-ethique-pentesting')
+        : DEFAULT_COURSES.find(c => c.id === 'cyber-securite-fondamentaux');
+    }
+  }
+
+  // Si aucun template spécifique n'est identifié, fallback sécurisé sur le cours d'Algorithmes & Python
+  if (!template) {
+    template = DEFAULT_COURSES.find(c => c.id === 'python-debutant-avance') || DEFAULT_COURSES[0];
+  }
+
+  // Vérifier si des leçons valides avec une vraie URL vidéo ont été fournies par la base
+  const hasValidCustomLessons = lessonsData && lessonsData.length > 0 && lessonsData.some(l => l.video_url && l.video_url.length > 10);
+
+  const lessons: Lesson[] = hasValidCustomLessons
+    ? lessonsData!.map((l, i) => ({
+        id: l.id || `${id}-lesson-${i}`,
+        title: l.title || template!.lessons[i]?.title || `Module ${i + 1}`,
+        description: l.description || template!.lessons[i]?.description || template!.description,
+        video_url: formatYouTubeEmbedUrl(l.video_url || template!.lessons[i]?.video_url),
+        duration: l.duration || template!.lessons[i]?.duration || '18 min',
         order_index: l.order_index ?? i + 1,
       }))
-    : [
-        {
-          id: 'def-1',
-          title: 'Module 1 : Introduction et Fondations',
-          description: courseData.description || 'Introduction au programme.',
-          video_url: formatYouTubeEmbedUrl(courseData.video_url || ''),
-          duration: '15 min',
-          order_index: 1,
-        },
-      ];
-
-  const defaultPdfs: CoursePdf[] = [
-    {
-      id: `pdf-${courseData.id}-1`,
-      number: 1,
-      title: `Guide 1 : Support Officiel - ${courseData.title}`,
-      description: 'Support de cours complet et fiches récapitulatives à télécharger.',
-      download_url: 'https://www.ssi.gouv.fr/uploads/2017/01/guide_cpme_bonnes_pratiques.pdf',
-      file_size: '1.8 MB',
-      pages: '15 pages',
-    },
-    {
-      id: `pdf-${courseData.id}-2`,
-      number: 2,
-      title: `Guide 2 : Fiche Pratique & Mémento Opérationnel`,
-      description: 'Résumé des notions clés et exercices pratiques pour valider vos acquis.',
-      download_url: 'https://www.ssi.gouv.fr/uploads/2017/01/guide_cpme_bonnes_pratiques.pdf',
-      file_size: '1.1 MB',
-      pages: '8 pages',
-    },
-    {
-      id: `pdf-${courseData.id}-3`,
-      number: 3,
-      title: `Guide 3 : Guide d\'Exécution & Études de Cas`,
-      description: 'Exemples concrets et méthodologie pas-à-pas pour réussir vos projets.',
-      download_url: 'https://www.ssi.gouv.fr/uploads/2017/01/guide_cpme_bonnes_pratiques.pdf',
-      file_size: '2.2 MB',
-      pages: '18 pages',
-    },
-  ];
+    : template.lessons;
 
   return {
-    id: courseData.id,
-    title: courseData.title,
-    description: courseData.description || 'Description du cours',
-    category: courseData.category || 'Général',
-    price: courseData.price || 0,
+    ...template,
+    id: courseData.id || template.id,
+    title: courseData.title && courseData.title.trim().length > 5 ? courseData.title : template.title,
+    description: courseData.description && courseData.description.trim().length > 15 ? courseData.description : template.description,
+    category: template.category,
+    price: courseData.price !== undefined ? courseData.price : template.price,
     certificate_price: 10000,
-    payment_link: courseData.payment_link,
-    level: courseData.price > 0 ? 'Niveau Avancé • Professionnel' : 'Tous niveaux',
-    total_duration: '1h 30min',
-    badge: courseData.price > 0 ? `👑 MASTERCLASS • ${courseData.price} FCFA` : 'Formation Offerte • Certificat 10 000 FCFA',
-    is_premium: courseData.price > 0,
+    payment_link: courseData.payment_link || template.payment_link,
+    level: template.level,
+    total_duration: template.total_duration,
+    badge: (courseData.price && courseData.price > 0)
+      ? `👑 MASTERCLASS • ${courseData.price.toLocaleString('fr-FR')} FCFA`
+      : template.badge,
+    is_premium: courseData.price !== undefined ? courseData.price > 0 : template.is_premium,
     lessons,
-    pdfs: defaultPdfs,
+    pdfs: template.pdfs,
   };
 }

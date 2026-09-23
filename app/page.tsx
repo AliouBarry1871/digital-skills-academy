@@ -4,20 +4,19 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { DEFAULT_COURSES, Course } from '@/lib/courses-data';
+import { DEFAULT_COURSES, Course, syncCourseWithSupabase } from '@/lib/courses-data';
 import RealPaymentModal from '@/app/components/RealPaymentModal';
 import { isSuperAdmin } from '@/lib/admin';
 
 export default function HomePage() {
   const [courses, setCourses] = useState<Course[]>(DEFAULT_COURSES);
   const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Tous');
   const [courseFilter, setCourseFilter] = useState<'all' | 'free' | 'premium'>('all');
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-
-  const isAdmin = isSuperAdmin(user);
 
   // État de la modale de paiement réel
   const [paymentModalData, setPaymentModalData] = useState<{
@@ -46,12 +45,24 @@ export default function HomePage() {
           .order('created_at', { ascending: false });
 
         if (coursesData && coursesData.length > 0) {
-          const existingIds = new Set(coursesData.map((c: any) => c.id));
-          const combined = [
-            ...coursesData,
-            ...DEFAULT_COURSES.filter(c => !existingIds.has(c.id)),
-          ];
-          loadedCourses = combined;
+          // Synchroniser chaque cours issu de Supabase avec son sujet et ses modules complets
+          const syncedSupabaseCourses = coursesData
+            .filter((c: any) => c.title && c.title.trim().length > 3 && c.title !== 'Cyber-sécurité :')
+            .map((c: any) => syncCourseWithSupabase(c));
+
+          // Fusionner avec DEFAULT_COURSES en évitant les doublons de titres
+          const knownTitles = new Set(DEFAULT_COURSES.map(c => c.title.toLowerCase().trim()));
+          const extraCourses: Course[] = [];
+
+          for (const sc of syncedSupabaseCourses) {
+            const cleanTitle = sc.title.toLowerCase().trim();
+            if (!knownTitles.has(cleanTitle)) {
+              extraCourses.push(sc);
+              knownTitles.add(cleanTitle);
+            }
+          }
+
+          loadedCourses = [...DEFAULT_COURSES, ...extraCourses];
         }
       } catch (err) {
         console.warn("Supabase fetch failed, using default courses", err);
@@ -61,6 +72,7 @@ export default function HomePage() {
 
       setCourses(loadedCourses);
       setUser(user);
+      setIsAdmin(isSuperAdmin(user));
       setLoading(false);
     }
     fetchData();
