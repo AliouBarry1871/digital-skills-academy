@@ -44,6 +44,9 @@ export default function LoginPage() {
       if (error) {
         alert("Erreur : " + error.message);
       } else {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('dsa_user_email', email.trim().toLowerCase());
+        }
         router.push('/');
         router.refresh();
       }

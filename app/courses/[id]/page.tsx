@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { Course, Lesson, CoursePdf, DEFAULT_COURSES, syncCourseWithSupabase } from '@/lib/courses-data';
 import CertificateModal from '@/app/components/CertificateModal';
 import PdfPreviewModal from '@/app/components/PdfPreviewModal';
+import { isSuperAdmin, formatYouTubeEmbedUrl } from '@/lib/admin';
 
 // Temps d'assiduité requis par module avant déblocage du bouton de validation (en secondes)
 const REQUIRED_WATCH_SECONDS = 20;
@@ -33,6 +34,7 @@ export default function CoursePlayer() {
 
   // Nom de l'étudiant connecté
   const [studentName, setStudentName] = useState('Mamadou Barry Diallo');
+  const [isAdminUser, setIsAdminUser] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -75,11 +77,12 @@ export default function CoursePlayer() {
           setCurrentLesson(loadedCourse.lessons[0]);
         }
 
-        // Charger l'utilisateur connecté pour pré-remplir son nom
+        // Charger l'utilisateur connecté pour pré-remplir son nom et vérifier les droits admin
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const name = user.user_metadata?.full_name || user.email?.split('@')[0] || '';
           if (name) setStudentName(name);
+          setIsAdminUser(isSuperAdmin(user));
         }
 
         // Charger la progression depuis localStorage
@@ -179,7 +182,8 @@ export default function CoursePlayer() {
 
   // Calcul du temps restant pour valider le visionnage de la vidéo
   const remainingSeconds = Math.max(0, REQUIRED_WATCH_SECONDS - secondsWatched);
-  const canMarkAsCompleted = isCurrentLessonCompleted || remainingSeconds === 0;
+  const canMarkAsCompleted = isAdminUser || isCurrentLessonCompleted || remainingSeconds === 0;
+  const canAccessCertificate = isAdminUser || isCourseFullyCompleted;
 
   return (
     <div className="min-h-screen bg-[#080d1a] text-white flex flex-col font-sans">
@@ -206,23 +210,28 @@ export default function CoursePlayer() {
 
         {/* STATUT CERTIFICAT EN HAUT À DROITE */}
         <div className="flex items-center gap-3">
+          {isAdminUser && (
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[10px] font-black uppercase tracking-wider">
+              <span>👑</span> Mode Admin Débloqué
+            </span>
+          )}
           <button
             onClick={() => {
-              if (isCourseFullyCompleted) {
+              if (canAccessCertificate) {
                 setIsCertModalOpen(true);
               } else {
                 alert(`Pour débloquer votre certificat officiel, vous devez terminer et valider tous les modules (${completedLessonIds.length}/${course.lessons.length} validés).`);
               }
             }}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl font-black text-xs uppercase tracking-wider transition-all ${
-              isCourseFullyCompleted
+              canAccessCertificate
                 ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 shadow-lg shadow-amber-500/25 animate-pulse cursor-pointer'
                 : 'bg-white/10 text-slate-400 hover:bg-white/15'
             }`}
           >
-            <span>{isCourseFullyCompleted ? '🎓' : '🔒'}</span>
+            <span>{canAccessCertificate ? '🎓' : '🔒'}</span>
             <span className="hidden sm:inline">
-              {isCourseFullyCompleted ? 'Certificat disponible :' : 'Certificat :'}
+              {isAdminUser ? 'Certificat (Admin) :' : canAccessCertificate ? 'Certificat disponible :' : 'Certificat :'}
             </span>{' '}
             10 000 FCFA
           </button>
@@ -425,7 +434,7 @@ export default function CoursePlayer() {
               {currentLesson ? (
                 <iframe
                   key={currentLesson.id}
-                  src={`${currentLesson.video_url}${currentLesson.video_url.includes('?') ? '&' : '?'}rel=0&modestbranding=1&autoplay=0`}
+                  src={`${formatYouTubeEmbedUrl(currentLesson.video_url)}?rel=0&modestbranding=1&autoplay=0`}
                   title={currentLesson.title}
                   className="absolute inset-0 w-full h-full border-none"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -496,21 +505,31 @@ export default function CoursePlayer() {
 
           {/* BANNIÈRE DE FIN DE FORMATION & CERTIFICAT (DYNAMIQUE) */}
           <div className={`p-6 md:p-8 rounded-[2rem] border-2 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6 transition-all ${
-            isCourseFullyCompleted
+            canAccessCertificate
               ? 'bg-gradient-to-r from-amber-500/20 via-blue-600/20 to-emerald-500/20 border-amber-500/40'
               : 'bg-white/[0.03] border-white/10'
           }`}>
             <div className="space-y-1 text-center sm:text-left">
               <span className={`text-[10px] font-black uppercase tracking-[0.25em] block ${
-                isCourseFullyCompleted ? 'text-amber-400' : 'text-slate-400'
+                canAccessCertificate ? 'text-amber-400' : 'text-slate-400'
               }`}>
-                {isCourseFullyCompleted ? '🎉 Cursus 100% validé !' : '🎓 Progression vers la Certification'}
+                {isAdminUser
+                  ? '👑 Accès Privilégié Administrateur'
+                  : isCourseFullyCompleted
+                  ? '🎉 Cursus 100% validé !'
+                  : '🎓 Progression vers la Certification'}
               </span>
               <h3 className="text-xl font-black text-white">
-                {isCourseFullyCompleted ? 'Votre Certificat Professionnel est Prêt' : 'Obtenir votre Certificat Certifié'}
+                {isAdminUser
+                  ? 'Générateur de Certificat Officiel (Admin)'
+                  : isCourseFullyCompleted
+                  ? 'Votre Certificat Professionnel est Prêt'
+                  : 'Obtenir votre Certificat Certifié'}
               </h3>
               <p className="text-xs text-slate-300 max-w-md">
-                {isCourseFullyCompleted
+                {isAdminUser
+                  ? 'En tant qu\'administrateur officiel, vous avez le plein droit de visualiser, personnaliser et exporter les certificats de cette formation.'
+                  : isCourseFullyCompleted
                   ? 'Félicitations, vous avez validé toutes les leçons ! Vous pouvez maintenant commander et imprimer votre certificat officiel.'
                   : `Terminez l'ensemble des modules (${completedLessonIds.length}/${course.lessons.length} complétés) pour débloquer votre attestation d'accomplissement.`}
               </p>
@@ -518,20 +537,24 @@ export default function CoursePlayer() {
 
             <button
               onClick={() => {
-                if (isCourseFullyCompleted) {
+                if (canAccessCertificate) {
                   setIsCertModalOpen(true);
                 } else {
                   alert(`Attention : Vous devez valider l'ensemble des ${course.lessons.length} modules avant de réclamer votre certificat officiel.`);
                 }
               }}
-              disabled={!isCourseFullyCompleted}
+              disabled={!canAccessCertificate}
               className={`px-8 py-4 text-xs font-black uppercase tracking-widest rounded-2xl shadow-xl transition-all transform shrink-0 ${
-                isCourseFullyCompleted
+                canAccessCertificate
                   ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-amber-500/25 hover:scale-105 active:scale-95 cursor-pointer'
                   : 'bg-white/10 text-slate-500 cursor-not-allowed border border-white/5 opacity-50'
               }`}
             >
-              {isCourseFullyCompleted ? '🎓 Commander mon Certificat (10 000 FCFA)' : '🔒 Certificat verrouillé'}
+              {isAdminUser
+                ? '🎓 Aperçu Certificat (Admin)'
+                : isCourseFullyCompleted
+                ? '🎓 Commander mon Certificat (10 000 FCFA)'
+                : '🔒 Certificat verrouillé'}
             </button>
           </div>
 

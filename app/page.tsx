@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { DEFAULT_COURSES, Course } from '@/lib/courses-data';
 import RealPaymentModal from '@/app/components/RealPaymentModal';
+import { isSuperAdmin } from '@/lib/admin';
 
 export default function HomePage() {
   const [courses, setCourses] = useState<Course[]>(DEFAULT_COURSES);
@@ -15,6 +16,8 @@ export default function HomePage() {
   const [courseFilter, setCourseFilter] = useState<'all' | 'free' | 'premium'>('all');
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+
+  const isAdmin = isSuperAdmin(user);
 
   // État de la modale de paiement réel
   const [paymentModalData, setPaymentModalData] = useState<{
@@ -64,6 +67,12 @@ export default function HomePage() {
   }, []);
 
   const handleCourseClick = (course: any) => {
+    // Si l'utilisateur est l'administrateur officiel, accès immédiat à tous les cours gratuits et payants
+    if (isAdmin) {
+      router.push(`/courses/${course.id}`);
+      return;
+    }
+
     if (course.price > 0) {
       // Ouvre la modale de paiement réel (Stripe, Wave, Orange Money)
       setPaymentModalData({
@@ -160,6 +169,14 @@ export default function HomePage() {
           <div className="flex items-center gap-4">
             {user ? (
               <div className="flex items-center gap-3">
+                {isAdmin && (
+                  <Link
+                    href="/admin/add-course"
+                    className="hidden sm:inline-flex items-center gap-1.5 text-xs font-black text-amber-300 bg-amber-500/20 border border-amber-500/30 px-3.5 py-2 rounded-xl hover:bg-amber-500/30 transition-all"
+                  >
+                    <span>👑</span> + Ajouter un cours
+                  </Link>
+                )}
                 <Link
                   href="/dashboard"
                   className="text-xs font-bold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-4 py-2.5 rounded-xl border border-white/10 transition-all"
@@ -520,7 +537,7 @@ export default function HomePage() {
                     }`}
                   >
                     {isPremium
-                      ? `Rejoindre la Masterclass - ${course.price.toLocaleString('fr-FR')} FCFA`
+                      ? (isAdmin ? 'ACCÉDER AU COURS (ADMIN) 👑' : `Rejoindre la Masterclass - ${course.price.toLocaleString('fr-FR')} FCFA`)
                       : 'Commencer la Formation'}
                   </button>
                 </div>
@@ -656,7 +673,7 @@ export default function HomePage() {
                   </span>
                   <div>
                     <span className="block text-[9px] uppercase tracking-wider text-slate-400 font-bold">Localisation</span>
-                    <span className="font-medium text-slate-300">Dakar, Sénégal • Accessible partout en ligne</span>
+                    <span className="font-medium text-slate-300">Plateforme 100% en ligne • Accessible partout dans le monde</span>
                   </div>
                 </div>
               </div>

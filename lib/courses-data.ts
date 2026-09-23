@@ -1,3 +1,5 @@
+import { formatYouTubeEmbedUrl } from './admin';
+
 export interface Lesson {
   id: string;
   title: string;
@@ -795,7 +797,7 @@ export function syncCourseWithSupabase(courseData: any, lessonsData?: any[]): Co
         id: l.id || `l-${i}`,
         title: l.title || `Leçon ${i + 1}`,
         description: l.description || 'Contenu pédagogique officiel du module.',
-        video_url: l.video_url || courseData.video_url || 'https://www.youtube.com/embed/KYVN3GVhSGk',
+        video_url: formatYouTubeEmbedUrl(l.video_url || courseData.video_url || ''),
         duration: l.duration || '15 min',
         order_index: l.order_index ?? i + 1,
       }))
@@ -804,7 +806,7 @@ export function syncCourseWithSupabase(courseData: any, lessonsData?: any[]): Co
           id: 'def-1',
           title: 'Module 1 : Introduction et Fondations',
           description: courseData.description || 'Introduction au programme.',
-          video_url: courseData.video_url || 'https://www.youtube.com/embed/KYVN3GVhSGk',
+          video_url: formatYouTubeEmbedUrl(courseData.video_url || ''),
           duration: '15 min',
           order_index: 1,
         },
