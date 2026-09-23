@@ -18,7 +18,7 @@ export default function LoginPage() {
 
     if (isSignUp) {
       // --- LOGIQUE D'INSCRIPTION ---
-      const { error } = await supabase.auth.signUp({
+      const { data: signUpData, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -31,12 +31,24 @@ export default function LoginPage() {
       if (error) {
         alert(error.message);
       } else {
-        alert("Inscription réussie ! Vérifiez vos emails ou connectez-vous.");
+        if (signUpData?.user) {
+          try {
+            await supabase.from('profiles').upsert({
+              id: signUpData.user.id,
+              full_name: fullName || email.split('@')[0],
+              email: email.trim().toLowerCase(),
+              updated_at: new Date().toISOString(),
+            });
+          } catch (err) {
+            console.error(err);
+          }
+        }
+        alert("Inscription réussie ! Vous êtes désormais inscrit(e) à Digital Skills Academy.");
         setIsSignUp(false);
       }
     } else {
       // --- LOGIQUE DE CONNEXION ---
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data: signInData, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -44,6 +56,19 @@ export default function LoginPage() {
       if (error) {
         alert("Erreur : " + error.message);
       } else {
+        if (signInData?.user) {
+          try {
+            const userName = signInData.user.user_metadata?.full_name || email.split('@')[0];
+            await supabase.from('profiles').upsert({
+              id: signInData.user.id,
+              full_name: userName,
+              email: email.trim().toLowerCase(),
+              updated_at: new Date().toISOString(),
+            });
+          } catch (err) {
+            console.error(err);
+          }
+        }
         if (typeof window !== 'undefined') {
           localStorage.setItem('dsa_user_email', email.trim().toLowerCase());
         }

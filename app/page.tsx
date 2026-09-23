@@ -12,6 +12,7 @@ export default function HomePage() {
   const [courses, setCourses] = useState<Course[]>(DEFAULT_COURSES);
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [studentCount, setStudentCount] = useState<number>(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Tous');
   const [courseFilter, setCourseFilter] = useState<'all' | 'free' | 'premium'>('all');
@@ -34,6 +35,20 @@ export default function HomePage() {
   });
 
   const categories = ['Tous', 'Cyber-sécurité', 'Python', 'Développement', 'Bureautique', 'Marketing Digital'];
+
+  const fetchStudentCount = async () => {
+    try {
+      const { count, error } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
+      if (!error && typeof count === 'number') {
+        setStudentCount(count);
+      }
+    } catch (err) {
+      console.error("Erreur lors du décompte des étudiants:", err);
+    }
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -73,9 +88,44 @@ export default function HomePage() {
       setCourses(loadedCourses);
       setUser(user);
       setIsAdmin(isSuperAdmin(user));
+
+      // S'assurer que le profil de l'utilisateur connecté est bien inscrit dans 'profiles'
+      if (user) {
+        try {
+          const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Étudiant';
+          await supabase.from('profiles').upsert({
+            id: user.id,
+            full_name: fullName,
+            email: user.email,
+            updated_at: new Date().toISOString(),
+          });
+        } catch (e) {
+          // Erreur non bloquante
+        }
+      }
+
+      // Récupérer le nombre réel d'étudiants inscrits
+      await fetchStudentCount();
       setLoading(false);
     }
+
     fetchData();
+
+    // Écoute en temps réel des nouvelles inscriptions dans la table 'profiles'
+    const channel = supabase
+      .channel('realtime-profiles-count')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'profiles' },
+        () => {
+          fetchStudentCount();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleCourseClick = (course: any) => {
@@ -273,8 +323,12 @@ export default function HomePage() {
             {/* GARANTIES RAPIDES */}
             <div className="grid grid-cols-3 gap-4 pt-6 border-t border-white/10 max-w-lg mx-auto lg:mx-0 text-left">
               <div>
-                <span className="block text-2xl font-black text-white">5 000+</span>
-                <span className="text-[11px] text-slate-400 font-medium">Apprenants formés</span>
+                <span className="block text-2xl font-black text-white">
+                  {studentCount}
+                </span>
+                <span className="text-[11px] text-slate-400 font-medium">
+                  {studentCount > 1 ? 'Étudiants inscrits' : 'Étudiant inscrit'}
+                </span>
               </div>
               <div>
                 <span className="block text-2xl font-black text-amber-400">10 000 F</span>
