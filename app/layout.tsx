@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://digital-skills-academy.vercel.app'),
+  metadataBase: new URL('https://digital-skills-academy-nu.vercel.app'),
   title: {
     default: 'Digital Skills Academy | Institut International des Compétences Numériques',
     template: '%s | Digital Skills Academy',
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     title: 'Digital Skills Academy | Formations d’Élite & Certifications',
     description:
       'Rejoignez notre académie pour maîtriser la Cybersécurité, Python, le Web et les Outils Numériques. Cours pratiques avec vidéos et supports PDF certifiés.',
-    url: 'https://digital-skills-academy.vercel.app',
+    url: 'https://digital-skills-academy-nu.vercel.app',
     siteName: 'Digital Skills Academy',
     locale: 'fr_FR',
     type: 'website',

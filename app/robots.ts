@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/admin/', '/api/'],
     },
-    sitemap: 'https://digital-skills-academy.vercel.app/sitemap.xml',
+    sitemap: 'https://digital-skills-academy-nu.vercel.app/sitemap.xml',
   };
 }

@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { DEFAULT_COURSES } from '@/lib/courses-data';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://digital-skills-academy.vercel.app';
+  const baseUrl = 'https://digital-skills-academy-nu.vercel.app';
 
   const courseUrls: MetadataRoute.Sitemap = DEFAULT_COURSES.map((course) => ({
     url: `${baseUrl}/courses/${course.id}`,
