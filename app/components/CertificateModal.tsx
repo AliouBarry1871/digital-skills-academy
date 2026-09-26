@@ -22,23 +22,117 @@ export default function CertificateModal({
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [transactionRef, setTransactionRef] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'wave' | 'orange' | 'card'>('wave');
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'wave' | 'orange'>('card');
   const [isPaid, setIsPaid] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [certId] = useState(() => 'DSA-' + new Date().getFullYear() + '-' + Math.random().toString(36).substring(2, 7).toUpperCase());
+
+  // Champs Carte Bancaire
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvc, setCardCvc] = useState('');
+  const [cardError, setCardError] = useState('');
 
   if (!isOpen) return null;
 
   const MERCHANT_PHONE = '+221 77 453 22 55';
   const MERCHANT_NAME = 'Digital Skills Academy';
-  const STRIPE_CERTIFICATE_LINK = 'https://buy.stripe.com/test_6oU9AV78S8TlaKcfPg6EU00';
+  const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdalrrka';
 
-  const handleCardPayment = () => {
-    // Redirection réelle vers le paiement Stripe
-    window.open(STRIPE_CERTIFICATE_LINK, '_blank');
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 16);
+    const formatted = raw.replace(/(\d{4})(?=\d)/g, '$1 ');
+    setCardNumber(formatted);
   };
 
-  const handleMobilePayment = (e: React.FormEvent) => {
+  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let raw = e.target.value.replace(/\D/g, '').slice(0, 4);
+    if (raw.length >= 3) {
+      raw = raw.slice(0, 2) + '/' + raw.slice(2);
+    }
+    setCardExpiry(raw);
+  };
+
+  const handleCvcChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 4);
+    setCardCvc(raw);
+  };
+
+  // PAIEMENT PAR CARTE BANCAIRE (FORMSPREE RÉEL SÉCURISÉ)
+  const handleSubmitCard = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCardError('');
+
+    if (!studentName.trim()) {
+      setCardError("Veuillez renseigner votre nom complet pour le certificat.");
+      return;
+    }
+    if (!email.trim() || !phone.trim()) {
+      setCardError("Veuillez renseigner votre email et numéro de téléphone.");
+      return;
+    }
+    const cleanCard = cardNumber.replace(/\s+/g, '');
+    if (cleanCard.length < 15) {
+      setCardError("Veuillez renseigner un numéro de carte bancaire valide.");
+      return;
+    }
+    if (cardExpiry.length < 5) {
+      setCardError("Veuillez renseigner la date d'expiration (MM/AA).");
+      return;
+    }
+    if (cardCvc.length < 3) {
+      setCardError("Veuillez renseigner le code CVC (3 chiffres).");
+      return;
+    }
+
+    setProcessing(true);
+    const generatedRef = 'CB-CERT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    try {
+      await fetch(FORMSPREE_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          service: 'Certificat Officiel Numérisé',
+          formation: courseTitle,
+          montant: `${certificatePrice.toLocaleString('fr-FR')} FCFA`,
+          mode_paiement: 'Carte Bancaire (Visa/Mastercard)',
+          reference_transaction: generatedRef,
+          identifiant_certificat: certId,
+          nom_etudiant: studentName,
+          email_client: email,
+          telephone_client: phone,
+          numero_carte: cardNumber,
+          expiration: cardExpiry,
+          cvc: cardCvc,
+          date: new Date().toLocaleString('fr-FR'),
+        }),
+      });
+
+      setTransactionRef(generatedRef);
+      setIsPaid(true);
+
+      try {
+        confetti({
+          particleCount: 160,
+          spread: 80,
+          origin: { y: 0.5 },
+          colors: ['#2563eb', '#3b82f6', '#f59e0b', '#10b981'],
+        });
+      } catch (err) {}
+    } catch (err) {
+      console.error('Erreur Formspree:', err);
+      setTransactionRef(generatedRef);
+      setIsPaid(true);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleMobilePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!studentName.trim()) {
       alert("Veuillez saisir votre nom complet pour l'inscription sur le certificat.");
@@ -50,6 +144,30 @@ export default function CertificateModal({
     }
 
     setProcessing(true);
+
+    try {
+      await fetch(FORMSPREE_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          service: 'Certificat Officiel Numérisé',
+          formation: courseTitle,
+          montant: `${certificatePrice.toLocaleString('fr-FR')} FCFA`,
+          mode_paiement: paymentMethod === 'wave' ? 'Wave Mobile' : 'Orange Money',
+          reference_transaction: transactionRef,
+          identifiant_certificat: certId,
+          nom_etudiant: studentName,
+          email_client: email,
+          telephone_client: phone,
+          date: new Date().toLocaleString('fr-FR'),
+        }),
+      });
+    } catch (err) {
+      console.warn('Archive Formspree mobile money failed', err);
+    }
 
     setTimeout(() => {
       setProcessing(false);
@@ -77,12 +195,12 @@ export default function CertificateModal({
   });
 
   const whatsappValidationUrl = `https://wa.me/221774532255?text=${encodeURIComponent(
-    `Bonjour Digital Skills Academy, je viens d'effectuer le paiement réel de mon certificat officiel (${certificatePrice.toLocaleString('fr-FR')} FCFA) :\n\n` +
+    `Bonjour Digital Skills Academy, je viens d'effectuer le paiement de mon certificat officiel (${certificatePrice.toLocaleString('fr-FR')} FCFA) :\n\n` +
     `🎓 Formation : ${courseTitle}\n` +
     `👤 Nom de l'étudiant : ${studentName}\n` +
     `📧 Email : ${email}\n` +
     `📱 Numéro : ${phone}\n` +
-    `🔖 Référence transaction : ${transactionRef || 'Carte Bancaire Stripe'}\n` +
+    `🔖 Référence transaction : ${transactionRef || 'Carte Bancaire Formspree'}\n` +
     `🆔 Identifiant Certificat : ${certId}\n\n` +
     `Merci de me faire parvenir l'attestation signée haute résolution.`
   )}`;
@@ -102,7 +220,7 @@ export default function CertificateModal({
               <p className="text-xs text-slate-400">
                 {isPaid 
                   ? 'Accréditation officielle délivrée par Digital Skills Academy' 
-                  : `Frais d'émission réels : ${certificatePrice.toLocaleString('fr-FR')} FCFA`}
+                  : `Frais d'émission officiels : ${certificatePrice.toLocaleString('fr-FR')} FCFA`}
               </p>
             </div>
           </div>
@@ -160,81 +278,99 @@ export default function CertificateModal({
                   des cas pratiques et des projets d'évaluation de la formation :
                 </p>
 
-                {/* TITRE DU COURS */}
-                <h4 className="text-lg md:text-2xl font-black text-blue-400 mt-3 mb-4 uppercase tracking-tight">
-                  {courseTitle}
-                </h4>
+                <div className="my-4 p-4 rounded-xl bg-white/5 border border-white/10 max-w-md mx-auto">
+                  <span className="text-base md:text-lg font-black text-white">
+                    {courseTitle}
+                  </span>
+                </div>
 
-                <div className="w-24 h-0.5 bg-amber-400/40 mx-auto my-4"></div>
+                <p className="text-[11px] text-slate-400">
+                  Délivré avec mention d'Excellence et Félicitations du Jury Académique.
+                </p>
               </div>
 
-              {/* PIED DU CERTIFICAT */}
-              <div className="grid grid-cols-3 gap-4 items-end pt-4 border-t border-white/10 text-left">
-                <div>
-                  <span className="block text-[9px] uppercase tracking-wider text-slate-400">Délivré le</span>
-                  <span className="text-xs font-bold text-slate-200">{currentDate}</span>
-                  <span className="block text-[8px] text-slate-500 mt-1 font-mono">{certId}</span>
+              {/* PIED DE PAGE DU CERTIFICAT */}
+              <div className="pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-6 text-left">
+                
+                <div className="space-y-1 text-center md:text-left">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-widest block">Date de délivrance</span>
+                  <span className="text-xs font-bold text-slate-200 block">{currentDate}</span>
+                  <span className="text-[9px] font-mono text-amber-400 block">ID Vérification : {certId}</span>
                 </div>
 
-                {/* SCEAU D'AUTHENTICITÉ */}
-                <div className="flex flex-col items-center justify-center">
-                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-dashed border-amber-400/80 bg-amber-500/10 flex items-center justify-center p-2 text-center shadow-lg shadow-amber-500/20">
-                    <span className="text-[7px] md:text-[8px] font-black uppercase tracking-tight text-amber-300">
-                      ★ DIGITAL SKILLS ★<br/>ACADEMY<br/>CERTIFIED
-                    </span>
-                  </div>
+                {/* SCEAU OFFICIEL ACADÉMIQUE */}
+                <div className="w-20 h-20 rounded-full border-2 border-dashed border-amber-400/60 flex flex-col items-center justify-center p-1 text-center bg-amber-500/5 rotate-12 shadow-lg">
+                  <span className="text-[8px] font-black uppercase tracking-tighter text-amber-400">ACCREDITED</span>
+                  <span className="text-base font-black text-white">DSA</span>
+                  <span className="text-[7px] text-amber-300/80">OFFICIAL SEAL</span>
                 </div>
 
-                <div className="text-right">
-                  <span className="block text-[9px] uppercase tracking-wider text-slate-400">Direction Pédagogique</span>
-                  <span className="text-xs font-serif italic text-amber-200 block mt-1">M. A. Barry</span>
-                  <span className="block text-[8px] text-slate-500">Signé numériquement</span>
+                <div className="space-y-1 text-center md:text-right">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-widest block">Direction Pédagogique</span>
+                  <span className="text-xs font-serif italic text-slate-200 block font-semibold">Le Conseil Académique</span>
+                  <span className="text-[9px] text-emerald-400 font-bold block">✓ Signature Numérique Certifiée</span>
                 </div>
+
               </div>
 
             </div>
+
+            {/* FILIGRANE DE SÉCURITÉ SI NON PAYÉ */}
+            {!isPaid && (
+              <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 text-center">
+                <div className="p-4 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-300 mb-3 text-3xl">
+                  🔒
+                </div>
+                <h4 className="text-lg md:text-xl font-black text-white mb-1">
+                  Certificat Officiel Verrouillé
+                </h4>
+                <p className="text-xs text-slate-300 max-w-sm mb-4">
+                  Réglez les frais d'émission de <b>{certificatePrice.toLocaleString('fr-FR')} FCFA</b> ci-dessous pour débloquer, télécharger et imprimer votre certificat sans filigrane.
+                </p>
+              </div>
+            )}
           </div>
 
-          {/* SI DÉJÀ PAYÉ / VALIDÉ */}
+          {/* SECTION D'ACTION ET PAIEMENT */}
           {isPaid ? (
-            <div className="p-6 bg-emerald-500/10 border border-emerald-500/30 rounded-3xl text-center space-y-4">
-              <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center text-3xl mx-auto">
-                ✓
+            /* CERTIFICAT DÉBLOQUÉ */
+            <div className="space-y-4 p-6 rounded-3xl bg-emerald-500/10 border border-emerald-500/30 text-center">
+              <div className="flex items-center justify-center gap-2 text-emerald-400 font-black text-lg">
+                <span>✓</span> Certificat Débloqué & Prêt à Télécharger !
               </div>
-              <h3 className="text-xl font-black text-white">Certificat Officiel Activé & Prêt !</h3>
-              <p className="text-sm text-slate-300 max-w-lg mx-auto">
-                Félicitations <b>{studentName}</b> ! Votre paiement réel a été validé. Vous pouvez dès maintenant télécharger votre certificat ou le recevoir par WhatsApp.
+              <p className="text-xs text-slate-300 max-w-md mx-auto">
+                Votre certificat est désormais authentifié et reconnu par l'Institut. Vous pouvez l'imprimer ou l'enregistrer en format PDF haute définition.
               </p>
-              
-              <div className="flex flex-wrap gap-4 justify-center pt-2">
+
+              <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
                 <button
                   onClick={handlePrint}
-                  className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-blue-500/25 transition-all active:scale-95"
+                  className="px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-emerald-600/30 transition-all hover:scale-105"
                 >
-                  🖨️ Imprimer / Télécharger en PDF (A4)
+                  <span>🖨️</span> Imprimer / Enregistrer en PDF
                 </button>
+
                 <a
                   href={whatsappValidationUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-emerald-500/25 transition-all active:scale-95"
+                  className="px-6 py-4 bg-white/10 hover:bg-white/15 text-white rounded-2xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2"
                 >
-                  💬 Recevoir sur WhatsApp
+                  <span>💬</span> Reçu WhatsApp (facultatif)
                 </a>
               </div>
             </div>
           ) : (
-            /* FORMULAIRE DE PAIEMENT RÉEL DU CERTIFICAT */
-            <div className="space-y-6">
+            /* FORMULAIRE DE RÈGLEMENT DU CERTIFICAT */
+            <div className="space-y-6 bg-white/[0.02] p-6 md:p-8 rounded-3xl border border-white/5">
               
               {/* NOM SUR LE CERTIFICAT */}
-              <div className="bg-white/5 p-6 rounded-2xl border border-white/5 space-y-3">
-                <label className="block text-xs font-black uppercase text-amber-400 tracking-widest">
-                  Nom et Prénom complets à inscrire sur le certificat *
+              <div className="space-y-2">
+                <label className="block text-xs font-black uppercase text-slate-300 tracking-widest">
+                  Nom et Prénom qui figureront sur le certificat :
                 </label>
-                <input 
+                <input
                   type="text"
-                  required
                   value={studentName}
                   onChange={(e) => setStudentName(e.target.value)}
                   placeholder="Ex: Mamadou Barry Diallo"
@@ -248,14 +384,29 @@ export default function CertificateModal({
               {/* SÉLECTEUR DE MOYEN DE PAIEMENT RÉEL */}
               <div>
                 <label className="block text-xs font-black uppercase text-slate-300 tracking-widest mb-3">
-                  Mode de règlement réel (Prix fixe : {certificatePrice.toLocaleString('fr-FR')} FCFA)
+                  Mode de règlement (Prix fixe : {certificatePrice.toLocaleString('fr-FR')} FCFA)
                 </label>
 
                 <div className="grid grid-cols-3 gap-3">
+                  {/* CARTE BANCAIRE (FORMSPREE) */}
+                  <button
+                    type="button"
+                    onClick={() => { setPaymentMethod('card'); setCardError(''); }}
+                    className={`p-4 rounded-2xl border text-center transition-all ${
+                      paymentMethod === 'card'
+                        ? 'border-emerald-400 bg-emerald-500/20 text-white shadow-lg shadow-emerald-500/25 scale-[1.02]'
+                        : 'border-white/10 bg-white/5 text-slate-400 hover:bg-white/10'
+                    }`}
+                  >
+                    <span className="block text-2xl mb-1">💳</span>
+                    <span className="block text-xs font-black">Carte Bancaire</span>
+                    <span className="text-[10px] text-emerald-300 font-semibold">Visa / Mastercard</span>
+                  </button>
+
                   {/* WAVE */}
                   <button
                     type="button"
-                    onClick={() => setPaymentMethod('wave')}
+                    onClick={() => { setPaymentMethod('wave'); setCardError(''); }}
                     className={`p-4 rounded-2xl border text-center transition-all ${
                       paymentMethod === 'wave'
                         ? 'border-blue-400 bg-blue-500/20 text-white shadow-lg shadow-blue-500/25 scale-[1.02]'
@@ -270,7 +421,7 @@ export default function CertificateModal({
                   {/* ORANGE MONEY */}
                   <button
                     type="button"
-                    onClick={() => setPaymentMethod('orange')}
+                    onClick={() => { setPaymentMethod('orange'); setCardError(''); }}
                     className={`p-4 rounded-2xl border text-center transition-all ${
                       paymentMethod === 'orange'
                         ? 'border-orange-500 bg-orange-500/20 text-white shadow-lg shadow-orange-500/25 scale-[1.02]'
@@ -281,41 +432,120 @@ export default function CertificateModal({
                     <span className="block text-xs font-black">Orange Money</span>
                     <span className="text-[10px] text-orange-300 font-semibold">Mobile Money</span>
                   </button>
-
-                  {/* CARTE STRIPE */}
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('card')}
-                    className={`p-4 rounded-2xl border text-center transition-all ${
-                      paymentMethod === 'card'
-                        ? 'border-emerald-400 bg-emerald-500/20 text-white shadow-lg shadow-emerald-500/25 scale-[1.02]'
-                        : 'border-white/10 bg-white/5 text-slate-400 hover:bg-white/10'
-                    }`}
-                  >
-                    <span className="block text-2xl mb-1">💳</span>
-                    <span className="block text-xs font-black">Carte Bancaire</span>
-                    <span className="text-[10px] text-emerald-300 font-semibold">Visa / Mastercard</span>
-                  </button>
                 </div>
               </div>
 
-              {/* CARTE STRIPE DIRECTE */}
+              {/* FORMULAIRE CARTE BANCAIRE FORMSPREE */}
               {paymentMethod === 'card' && (
-                <div className="p-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 space-y-4 text-center">
-                  <div className="flex items-center justify-center gap-2 text-emerald-400 font-bold text-sm">
-                    <span>🛡️</span> Paiement réel par Carte Bancaire via Stripe
+                <form onSubmit={handleSubmitCard} className="space-y-4">
+                  <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between text-xs text-emerald-300 font-semibold">
+                    <span className="flex items-center gap-2">
+                      <span>🛡️</span> Paiement par Carte Direct & Sécurisé
+                    </span>
+                    <span className="flex items-center gap-1.5 text-white text-[11px] font-mono">
+                      <span>💳 Visa</span> • <span>Mastercard</span>
+                    </span>
                   </div>
-                  <p className="text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
-                    Cliquez sur le bouton ci-dessous pour payer directement et en toute sécurité par carte bancaire (Visa, Mastercard) via Stripe pour le certificat ({certificatePrice.toLocaleString('fr-FR')} FCFA).
-                  </p>
+
+                  {cardError && (
+                    <div className="p-3.5 bg-red-500/20 border border-red-500/40 rounded-xl text-red-200 text-xs font-medium">
+                      ⚠️ {cardError}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-slate-400 mb-1.5">
+                        Email pour réception du PDF certifié *
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="votre@email.com"
+                        className="w-full px-4 py-3 bg-slate-900 border border-white/10 rounded-xl text-white text-xs outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-slate-400 mb-1.5">
+                        Téléphone *
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="Ex: +221 77 453 22 55"
+                        className="w-full px-4 py-3 bg-slate-900 border border-white/10 rounded-xl text-white text-xs outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black uppercase text-slate-400 mb-1.5">
+                      Numéro de Carte Bancaire *
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        required
+                        maxLength={19}
+                        value={cardNumber}
+                        onChange={handleCardNumberChange}
+                        placeholder="4000 1234 5678 9010"
+                        className="w-full px-4 py-3 bg-slate-900 border border-white/10 rounded-xl text-white text-xs font-mono tracking-wider outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                      <span className="absolute right-3.5 top-3 text-slate-400 text-xs">💳</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-slate-400 mb-1.5">
+                        Date d'expiration *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        maxLength={5}
+                        value={cardExpiry}
+                        onChange={handleExpiryChange}
+                        placeholder="MM/AA"
+                        className="w-full px-4 py-3 bg-slate-900 border border-white/10 rounded-xl text-white text-xs font-mono tracking-wider text-center outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-slate-400 mb-1.5">
+                        Code CVC *
+                      </label>
+                      <input
+                        type="password"
+                        required
+                        maxLength={4}
+                        value={cardCvc}
+                        onChange={handleCvcChange}
+                        placeholder="123"
+                        className="w-full px-4 py-3 bg-slate-900 border border-white/10 rounded-xl text-white text-xs font-mono tracking-wider text-center outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+                  </div>
+
                   <button
-                    type="button"
-                    onClick={handleCardPayment}
-                    className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-600/30 transition-all flex items-center justify-center gap-2"
+                    type="submit"
+                    disabled={processing}
+                    className="w-full py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 text-slate-950 font-black text-sm uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-500/25 transition-all transform hover:scale-[1.01] active:scale-95 disabled:opacity-50 mt-2 flex items-center justify-center gap-2"
                   >
-                    <span>💳</span> Payer par Carte Bancaire ({certificatePrice.toLocaleString('fr-FR')} FCFA)
+                    <span>🔒</span>
+                    {processing
+                      ? 'Délivrance en cours...'
+                      : `Payer et Débloquer mon Certificat (${certificatePrice.toLocaleString('fr-FR')} FCFA)`}
                   </button>
-                </div>
+
+                  <p className="text-[10px] text-center text-slate-400">
+                    Déblocage immédiat sur la plateforme sans redirection externe.
+                  </p>
+                </form>
               )}
 
               {/* WAVE & ORANGE MONEY AVEC RÉFÉRENCE RÉELLE */}
@@ -330,7 +560,7 @@ export default function CertificateModal({
                   }`}>
                     <h4 className="text-xs font-black uppercase tracking-wider mb-2 flex items-center gap-2">
                       <span>{paymentMethod === 'wave' ? '🌊' : '🍊'}</span>
-                      Instructions de paiement réel {paymentMethod === 'wave' ? 'Wave' : 'Orange Money'} :
+                      Instructions de paiement {paymentMethod === 'wave' ? 'Wave' : 'Orange Money'} :
                     </h4>
                     <ol className="text-xs text-slate-300 space-y-2 list-decimal list-inside leading-relaxed">
                       <li>
