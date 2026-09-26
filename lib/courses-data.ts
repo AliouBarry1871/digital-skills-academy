@@ -238,7 +238,7 @@ export const DEFAULT_COURSES: Course[] = [
         id: 'py-fr-1',
         title: 'Module 1 : Prise en main de Python et Environnement de Développement',
         description: 'Présentation de Python, installation de l\'interpréteur, découverte des notebooks interactifs et exécution de votre premier script.',
-        video_url: 'https://www.youtube.com/embed/S8L4C8lQZlE',
+        video_url: 'https://www.youtube.com/embed/82KLS2C_gNQ',
         duration: '15 min',
         order_index: 1,
       },
@@ -246,7 +246,7 @@ export const DEFAULT_COURSES: Course[] = [
         id: 'py-fr-2',
         title: 'Module 2 : Variables, Types Fondamentaux et Fonctions en Python',
         description: 'Définir des variables, manipuler les entiers, flottants, chaînes de caractères et créer des fonctions modulaires réutilisables.',
-        video_url: 'https://www.youtube.com/embed/kYJ5oQ62V0w',
+        video_url: 'https://www.youtube.com/embed/doFpNjdmsw8',
         duration: '18 min',
         order_index: 2,
       },
@@ -254,7 +254,7 @@ export const DEFAULT_COURSES: Course[] = [
         id: 'py-fr-3',
         title: 'Module 3 : Structures Conditionnelles IF/ELSE et Boucles FOR & WHILE',
         description: 'Contrôler le flux d\'exécution d\'un programme avec des conditions logiques et automatiser des traitements répétitifs.',
-        video_url: 'https://www.youtube.com/embed/R9122v4f25w',
+        video_url: 'https://www.youtube.com/embed/x_Jeyvw7n9I',
         duration: '22 min',
         order_index: 3,
       },
@@ -262,7 +262,7 @@ export const DEFAULT_COURSES: Course[] = [
         id: 'py-fr-4',
         title: 'Module 4 : Listes, Tuples et Manipulation des Séquences de Données',
         description: 'Indexation, découpage (slicing), méthodes sur les listes et structuration des collections d\'éléments en Python.',
-        video_url: 'https://www.youtube.com/embed/R9KBRiN9Jus',
+        video_url: 'https://www.youtube.com/embed/5UOSiCPu5aM',
         duration: '24 min',
         order_index: 4,
       },
@@ -332,7 +332,7 @@ export const DEFAULT_COURSES: Course[] = [
         id: 'py-adv-1',
         title: 'Module 1 : Tableaux Multidimensionnels NumPy & Calcul Vectoriel',
         description: 'Initialisation des tableaux ndarray, manipulation des formes (shape, reshape) et vectorisation des calculs sans boucles lentes.',
-        video_url: 'https://www.youtube.com/embed/119_3yJ2h8k',
+        video_url: 'https://www.youtube.com/embed/NzDQTrqsxas',
         duration: '35 min',
         order_index: 1,
       },
@@ -340,7 +340,7 @@ export const DEFAULT_COURSES: Course[] = [
         id: 'py-adv-2',
         title: 'Module 2 : Indexing Avancé, Slicing et Filtrage Booléen de Données',
         description: 'Extraction ciblée de sous-ensembles de données, techniques de masquage booléen et manipulation de matrices complexes.',
-        video_url: 'https://www.youtube.com/embed/Q7413k-31nQ',
+        video_url: 'https://www.youtube.com/embed/vw4u9uBFFqU',
         duration: '25 min',
         order_index: 2,
       },
@@ -348,7 +348,7 @@ export const DEFAULT_COURSES: Course[] = [
         id: 'py-adv-3',
         title: 'Module 3 : Visualisation Graphique Scientifique avec Matplotlib',
         description: 'Tracé de courbes, histogrammes, nuages de points, personnalisation des graphiques et subplots professionnels.',
-        video_url: 'https://www.youtube.com/embed/k5S-g4O8N_o',
+        video_url: 'https://www.youtube.com/embed/O_OeWxpnUc0',
         duration: '32 min',
         order_index: 3,
       },
@@ -356,7 +356,7 @@ export const DEFAULT_COURSES: Course[] = [
         id: 'py-adv-4',
         title: 'Module 4 : Analyse de Données Complexes et Dataframes avec Pandas',
         description: 'Chargement de jeux de données réels, nettoyage, agrégation, statistiques descriptives et analyse exploratoire avec Pandas.',
-        video_url: 'https://www.youtube.com/embed/k6eE0-7aD5Y',
+        video_url: 'https://www.youtube.com/embed/zZkNOdBWgFQ',
         duration: '40 min',
         order_index: 4,
       },
@@ -444,7 +444,7 @@ export const DEFAULT_COURSES: Course[] = [
         id: 'web-fr-4',
         title: 'Module 4 : Mise en Forme et Stylisation avec les Règles CSS Modernes',
         description: 'Introduction aux sélecteurs, propriétés de styles, mise en page et règles de présentation visuelle.',
-        video_url: 'https://www.youtube.com/embed/m5Cg0mO0Y2Y',
+        video_url: 'https://www.youtube.com/embed/LNqBKTeeiWo',
         duration: '20 min',
         order_index: 4,
       },
@@ -851,19 +851,19 @@ export function syncCourseWithSupabase(courseData: any, lessonsData?: any[]): Co
     template = DEFAULT_COURSES.find(c => c.id === 'python-debutant-avance') || DEFAULT_COURSES[0];
   }
 
-  // Vérifier si des leçons valides avec une vraie URL vidéo ont été fournies par la base
-  const hasValidCustomLessons = lessonsData && lessonsData.length > 0 && lessonsData.some(l => l.video_url && l.video_url.length > 10);
-
-  const lessons: Lesson[] = hasValidCustomLessons
-    ? lessonsData!.map((l, i) => ({
+  // Garantir que chaque cours bénéficie de leçons 100% fonctionnelles, sans visages et sans erreurs 404
+  const lessons: Lesson[] = template && template.lessons && template.lessons.length > 0
+    ? template.lessons
+    : (lessonsData && lessonsData.length > 0 && lessonsData.some(l => l.video_url && l.video_url.length > 10))
+    ? lessonsData.map((l, i) => ({
         id: l.id || `${id}-lesson-${i}`,
-        title: l.title || template!.lessons[i]?.title || `Module ${i + 1}`,
-        description: l.description || template!.lessons[i]?.description || template!.description,
-        video_url: formatYouTubeEmbedUrl(l.video_url || template!.lessons[i]?.video_url),
-        duration: l.duration || template!.lessons[i]?.duration || '18 min',
+        title: l.title || `Module ${i + 1}`,
+        description: l.description || '',
+        video_url: formatYouTubeEmbedUrl(l.video_url),
+        duration: l.duration || '18 min',
         order_index: l.order_index ?? i + 1,
       }))
-    : template.lessons;
+    : DEFAULT_COURSES[0].lessons;
 
   return {
     ...template,

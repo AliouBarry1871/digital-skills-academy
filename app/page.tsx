@@ -60,20 +60,31 @@ export default function HomePage() {
           .order('created_at', { ascending: false });
 
         if (coursesData && coursesData.length > 0) {
-          // Synchroniser chaque cours issu de Supabase avec son sujet et ses modules complets
-          const syncedSupabaseCourses = coursesData
-            .filter((c: any) => c.title && c.title.trim().length > 3 && c.title !== 'Cyber-sécurité :')
-            .map((c: any) => syncCourseWithSupabase(c));
+          // Liste des anciens enregistrements de test / doublons à filtrer
+          const legacyDummyTitles = [
+            'cyber-sécurité :',
+            'algorithmes et langage python',
+            'fondamentaux de la cyber-sécurité',
+            'fondamentaux de la cyber-sécurité : protéger ses données',
+            'python pour débutants : votre premier script en 10 minutes',
+            'maîtriser les outils collaboratifs (office & google workspace)',
+            'stratégies marketing & growth hacking',
+            'maîtriser le développement web moderne',
+            'maîtriser next.js de a à z',
+          ];
 
-          // Fusionner avec DEFAULT_COURSES en évitant les doublons de titres
-          const knownTitles = new Set(DEFAULT_COURSES.map(c => c.title.toLowerCase().trim()));
+          const knownTitles = new Set([
+            ...DEFAULT_COURSES.map(c => c.title.toLowerCase().trim()),
+            ...legacyDummyTitles,
+          ]);
+
           const extraCourses: Course[] = [];
 
-          for (const sc of syncedSupabaseCourses) {
-            const cleanTitle = sc.title.toLowerCase().trim();
-            if (!knownTitles.has(cleanTitle)) {
-              extraCourses.push(sc);
-              knownTitles.add(cleanTitle);
+          for (const c of coursesData) {
+            const rawTitle = (c.title || '').toLowerCase().trim();
+            if (rawTitle.length > 3 && !knownTitles.has(rawTitle)) {
+              extraCourses.push(syncCourseWithSupabase(c));
+              knownTitles.add(rawTitle);
             }
           }
 
