@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { Course, Lesson, CoursePdf, DEFAULT_COURSES, syncCourseWithSupabase } from '@/lib/courses-data';
 import CertificateModal from '@/app/components/CertificateModal';
 import PdfPreviewModal from '@/app/components/PdfPreviewModal';
+import QuizModal from '@/app/components/QuizModal';
 import { isSuperAdmin, formatYouTubeEmbedUrl } from '@/lib/admin';
 
 // Temps d'assiduité requis par module avant déblocage du bouton de validation (en secondes)
@@ -25,8 +26,11 @@ export default function CoursePlayer() {
   const [secondsWatched, setSecondsWatched] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Modales
+  // Modales & Évaluation QCM
   const [isCertModalOpen, setIsCertModalOpen] = useState(false);
+  const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
+  const [isQuizPassed, setIsQuizPassed] = useState(false);
+  const [quizScore, setQuizScore] = useState<number | null>(null);
   const [previewPdf, setPreviewPdf] = useState<CoursePdf | null>(null);
 
   // Vue mobile
@@ -95,6 +99,15 @@ export default function CoursePlayer() {
               console.error(err);
             }
           }
+
+          const savedQuiz = localStorage.getItem(`dsa_quiz_passed_${loadedCourse.id}`);
+          if (savedQuiz === 'true') {
+            setIsQuizPassed(true);
+          }
+          const savedScore = localStorage.getItem(`dsa_quiz_score_${loadedCourse.id}`);
+          if (savedScore) {
+            setQuizScore(Number(savedScore));
+          }
         }
 
       } catch (err) {
@@ -106,6 +119,16 @@ export default function CoursePlayer() {
 
     fetchData();
   }, [id, router]);
+
+  const handleQuizPassed = (score: number) => {
+    if (!course) return;
+    setIsQuizPassed(true);
+    setQuizScore(score);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`dsa_quiz_passed_${course.id}`, 'true');
+      localStorage.setItem(`dsa_quiz_score_${course.id}`, score.toString());
+    }
+  };
 
   // Réinitialiser et lancer le chronomètre dès que la leçon change
   useEffect(() => {
@@ -183,7 +206,8 @@ export default function CoursePlayer() {
   // Calcul du temps restant pour valider le visionnage de la vidéo
   const remainingSeconds = Math.max(0, REQUIRED_WATCH_SECONDS - secondsWatched);
   const canMarkAsCompleted = isAdminUser || isCurrentLessonCompleted || remainingSeconds === 0;
-  const canAccessCertificate = isAdminUser || isCourseFullyCompleted;
+  const canTakeQuiz = isAdminUser || isCourseFullyCompleted;
+  const canAccessCertificate = isAdminUser || (isCourseFullyCompleted && isQuizPassed);
 
   return (
     <div className="min-h-screen bg-[#080d1a] text-white flex flex-col font-sans">
@@ -219,21 +243,31 @@ export default function CoursePlayer() {
             onClick={() => {
               if (canAccessCertificate) {
                 setIsCertModalOpen(true);
-              } else {
+              } else if (!isCourseFullyCompleted) {
                 alert(`Pour débloquer votre certificat officiel, vous devez terminer et valider tous les modules (${completedLessonIds.length}/${course.lessons.length} validés).`);
+              } else if (!isQuizPassed) {
+                setIsQuizModalOpen(true);
               }
             }}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl font-black text-xs uppercase tracking-wider transition-all ${
               canAccessCertificate
                 ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 shadow-lg shadow-amber-500/25 animate-pulse cursor-pointer'
+                : isCourseFullyCompleted
+                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 cursor-pointer'
                 : 'bg-white/10 text-slate-400 hover:bg-white/15'
             }`}
           >
-            <span>{canAccessCertificate ? '🎓' : '🔒'}</span>
+            <span>{canAccessCertificate ? '🎓' : isCourseFullyCompleted ? '✍️' : '🔒'}</span>
             <span className="hidden sm:inline">
-              {isAdminUser ? 'Certificat (Admin) :' : canAccessCertificate ? 'Certificat disponible :' : 'Certificat :'}
+              {isAdminUser
+                ? 'Certificat (Admin) :'
+                : canAccessCertificate
+                ? 'Certificat Débloqué :'
+                : isCourseFullyCompleted
+                ? 'Passer l\'Examen :'
+                : 'Certificat :'}
             </span>{' '}
-            10 000 FCFA
+            {isCourseFullyCompleted && !isQuizPassed && !isAdminUser ? '10 Questions' : '10 000 FCFA'}
           </button>
         </div>
       </nav>
@@ -365,34 +399,97 @@ export default function CoursePlayer() {
               })}
             </div>
 
+            {/* ÉTAPE EXAMEN QCM (10 QUESTIONS) */}
+            <div className="pt-3 border-t border-white/10">
+              <div className={`p-3.5 rounded-2xl border transition-all text-left ${
+                isQuizPassed
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                  : isCourseFullyCompleted
+                  ? 'bg-amber-500/10 border-amber-500/40 text-amber-200'
+                  : 'bg-white/[0.02] border-white/5 text-slate-500 opacity-60'
+              }`}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
+                    <span>{isQuizPassed ? '✅' : isCourseFullyCompleted ? '✍️' : '🔒'}</span>
+                    Test de Validation (10 Q.)
+                  </span>
+                  {isQuizPassed && (
+                    <span className="text-[10px] font-black bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">
+                      {quizScore ? `${quizScore}/10` : 'Validé'}
+                    </span>
+                  )}
+                </div>
+
+                <p className="text-[11px] leading-snug mb-2.5">
+                  {isQuizPassed
+                    ? 'Examen validé ! Votre éligibilité au certificat est confirmée.'
+                    : isCourseFullyCompleted
+                    ? 'Modules validés ! Passez le test (10 questions) pour débloquer votre certificat.'
+                    : 'Suivez les 4 cours complets pour débloquer le test de fin de formation.'}
+                </p>
+
+                <button
+                  onClick={() => {
+                    if (isCourseFullyCompleted || isAdminUser) {
+                      setIsQuizModalOpen(true);
+                    } else {
+                      alert(`Accès verrouillé : Vous devez obligatoirement terminer les 4 modules (${completedLessonIds.length}/${course.lessons.length}) avant de passer le test.`);
+                    }
+                  }}
+                  disabled={!isCourseFullyCompleted && !isAdminUser}
+                  className={`w-full py-2 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+                    isQuizPassed
+                      ? 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/30 cursor-pointer'
+                      : isCourseFullyCompleted || isAdminUser
+                      ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md shadow-amber-500/20 cursor-pointer font-black animate-pulse'
+                      : 'bg-white/5 text-slate-500 cursor-not-allowed border border-white/5'
+                  }`}
+                >
+                  {isQuizPassed
+                    ? 'Revoir le test (Validé ✓)'
+                    : isCourseFullyCompleted || isAdminUser
+                    ? 'Passer le Test (10 Q.) ✍️'
+                    : '🔒 Test Verrouillé'}
+                </button>
+              </div>
+            </div>
+
             {/* Encadré d'incitation au Certificat */}
-            <div className="mt-auto pt-4 border-t border-white/10">
+            <div className="mt-3 pt-3 border-t border-white/10">
               <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-500/10 to-amber-600/5 border border-amber-500/20 text-center">
                 <span className="text-xl">🏆</span>
                 <h4 className="text-xs font-bold text-amber-200 mt-1">
                   Certificat Officiel Digital Skills
                 </h4>
                 <p className="text-[11px] text-slate-400 mt-1 mb-3">
-                  {isCourseFullyCompleted
-                    ? 'Tous les modules sont validés ! Votre certificat est prêt.'
-                    : 'Suivez la formation jusqu\'au bout pour débloquer votre certificat.'}
+                  {canAccessCertificate
+                    ? 'Cours et examen validés avec succès ! Votre certificat officiel est disponible.'
+                    : isCourseFullyCompleted
+                    ? 'Modules terminés. Validez le test (10 questions) ci-dessus pour acheter votre certificat.'
+                    : 'Suivez les 4 cours et validez le test final pour débloquer votre certificat.'}
                 </p>
                 <button
                   onClick={() => {
-                    if (isCourseFullyCompleted) {
+                    if (canAccessCertificate) {
                       setIsCertModalOpen(true);
-                    } else {
-                      alert(`Validation requise : Complétez l'ensemble des modules (${completedLessonIds.length}/${course.lessons.length}) pour obtenir votre certificat.`);
+                    } else if (!isCourseFullyCompleted) {
+                      alert(`Validation requise : Vous devez suivre les 4 cours (${completedLessonIds.length}/${course.lessons.length}) puis valider le test.`);
+                    } else if (!isQuizPassed) {
+                      setIsQuizModalOpen(true);
                     }
                   }}
-                  disabled={!isCourseFullyCompleted}
+                  disabled={!canAccessCertificate}
                   className={`w-full py-2.5 px-3 font-black text-xs rounded-xl uppercase tracking-wider transition-all ${
-                    isCourseFullyCompleted
-                      ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md shadow-amber-500/20 cursor-pointer'
+                    canAccessCertificate
+                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-md shadow-amber-500/20 cursor-pointer animate-pulse'
                       : 'bg-white/10 text-slate-500 cursor-not-allowed border border-white/5'
                   }`}
                 >
-                  {isCourseFullyCompleted ? 'Obtenir (10 000 FCFA)' : '🔒 Bloqué (En cours)'}
+                  {canAccessCertificate
+                    ? 'Commander mon Certificat (10 000 FCFA)'
+                    : isCourseFullyCompleted
+                    ? '🔒 Validez le Test d\'abord'
+                    : '🔒 Bloqué (4 cours requis)'}
                 </button>
               </div>
             </div>
@@ -503,59 +600,74 @@ export default function CoursePlayer() {
             </div>
           </div>
 
-          {/* BANNIÈRE DE FIN DE FORMATION & CERTIFICAT (DYNAMIQUE) */}
+          {/* BANNIÈRE DE FIN DE FORMATION & CERTIFICAT (PROGRESSION 3 ÉTAPES) */}
           <div className={`p-6 md:p-8 rounded-[2rem] border-2 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6 transition-all ${
             canAccessCertificate
               ? 'bg-gradient-to-r from-amber-500/20 via-blue-600/20 to-emerald-500/20 border-amber-500/40'
+              : isCourseFullyCompleted
+              ? 'bg-gradient-to-r from-blue-600/20 to-amber-500/10 border-blue-500/40'
               : 'bg-white/[0.03] border-white/10'
           }`}>
-            <div className="space-y-1 text-center sm:text-left">
+            <div className="space-y-1.5 text-center sm:text-left">
               <span className={`text-[10px] font-black uppercase tracking-[0.25em] block ${
-                canAccessCertificate ? 'text-amber-400' : 'text-slate-400'
+                canAccessCertificate
+                  ? 'text-amber-400'
+                  : isCourseFullyCompleted
+                  ? 'text-blue-400'
+                  : 'text-slate-400'
               }`}>
                 {isAdminUser
                   ? '👑 Accès Privilégié Administrateur'
+                  : canAccessCertificate
+                  ? '🏆 Étape 3 : Certificat Débloqué !'
                   : isCourseFullyCompleted
-                  ? '🎉 Cursus 100% validé !'
-                  : '🎓 Progression vers la Certification'}
+                  ? '✍️ Étape 2 : Examen de Validation Requis'
+                  : `🎓 Étape 1 : Modules du cours (${completedLessonIds.length}/${course.lessons.length})`}
               </span>
               <h3 className="text-xl font-black text-white">
                 {isAdminUser
                   ? 'Générateur de Certificat Officiel (Admin)'
+                  : canAccessCertificate
+                  ? 'Votre Certificat Professionnel est Prêt !'
                   : isCourseFullyCompleted
-                  ? 'Votre Certificat Professionnel est Prêt'
-                  : 'Obtenir votre Certificat Certifié'}
+                  ? 'Passez le Test de Validation (10 Questions)'
+                  : 'Suivez les 4 Cours pour Débloquer le Test'}
               </h3>
               <p className="text-xs text-slate-300 max-w-md">
                 {isAdminUser
                   ? 'En tant qu\'administrateur officiel, vous avez le plein droit de visualiser, personnaliser et exporter les certificats de cette formation.'
+                  : canAccessCertificate
+                  ? 'Félicitations, vous avez validé l\'ensemble des 4 modules et réussi l\'examen de fin de formation. Vous pouvez commander et télécharger votre certificat officiel.'
                   : isCourseFullyCompleted
-                  ? 'Félicitations, vous avez validé toutes les leçons ! Vous pouvez maintenant commander et imprimer votre certificat officiel.'
-                  : `Terminez l'ensemble des modules (${completedLessonIds.length}/${course.lessons.length} complétés) pour débloquer votre attestation d'accomplissement.`}
+                  ? 'Bravo, vous avez complété les 4 cours ! Répondez maintenant au test final de 10 questions (score minimum : 7/10) pour débloquer l\'achat de votre certificat.'
+                  : `Pour obtenir votre certificat, vous devez suivre l'intégralité des 4 modules (${completedLessonIds.length}/${course.lessons.length} validés), puis valider le test d'évaluation de 10 questions.`}
               </p>
             </div>
 
-            <button
-              onClick={() => {
-                if (canAccessCertificate) {
-                  setIsCertModalOpen(true);
-                } else {
-                  alert(`Attention : Vous devez valider l'ensemble des ${course.lessons.length} modules avant de réclamer votre certificat officiel.`);
-                }
-              }}
-              disabled={!canAccessCertificate}
-              className={`px-8 py-4 text-xs font-black uppercase tracking-widest rounded-2xl shadow-xl transition-all transform shrink-0 ${
-                canAccessCertificate
-                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-amber-500/25 hover:scale-105 active:scale-95 cursor-pointer'
-                  : 'bg-white/10 text-slate-500 cursor-not-allowed border border-white/5 opacity-50'
-              }`}
-            >
-              {isAdminUser
-                ? '🎓 Aperçu Certificat (Admin)'
-                : isCourseFullyCompleted
-                ? '🎓 Commander mon Certificat (10 000 FCFA)'
-                : '🔒 Certificat verrouillé'}
-            </button>
+            {canAccessCertificate ? (
+              <button
+                onClick={() => setIsCertModalOpen(true)}
+                className="px-8 py-4 text-xs font-black uppercase tracking-widest rounded-2xl shadow-xl transition-all transform shrink-0 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-amber-500/25 hover:scale-105 active:scale-95 cursor-pointer animate-pulse"
+              >
+                {isAdminUser ? '🎓 Aperçu Certificat (Admin)' : '🎓 Commander mon Certificat (10 000 FCFA)'}
+              </button>
+            ) : isCourseFullyCompleted ? (
+              <button
+                onClick={() => setIsQuizModalOpen(true)}
+                className="px-8 py-4 text-xs font-black uppercase tracking-widest rounded-2xl shadow-xl transition-all transform shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-blue-500/25 hover:scale-105 active:scale-95 cursor-pointer font-black animate-pulse"
+              >
+                ✍️ Passer le Test (10 Q.)
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  alert(`Accès réservé : Vous devez suivre l'intégralité des 4 modules (${completedLessonIds.length}/${course.lessons.length} validés) pour débloquer l'examen de certification.`);
+                }}
+                className="px-8 py-4 text-xs font-black uppercase tracking-widest rounded-2xl shadow-xl transition-all shrink-0 bg-white/10 text-slate-500 cursor-not-allowed border border-white/5 opacity-50"
+              >
+                🔒 Test Verrouillé ({completedLessonIds.length}/4)
+              </button>
+            )}
           </div>
 
           {/* DÉTAILS DU MODULE EN COURS */}
@@ -705,6 +817,17 @@ export default function CoursePlayer() {
       <PdfPreviewModal
         pdf={previewPdf}
         onClose={() => setPreviewPdf(null)}
+      />
+
+      {/* MODALE D'EXAMEN ET TEST DE VALIDATION (10 QUESTIONS) */}
+      <QuizModal
+        isOpen={isQuizModalOpen}
+        onClose={() => setIsQuizModalOpen(false)}
+        courseId={course.id}
+        courseTitle={course.title}
+        courseCategory={course.category}
+        studentName={studentName}
+        onQuizPassed={handleQuizPassed}
       />
 
       {/* STYLE PERSONNALISÉ POUR LA SCROLLBAR */}
