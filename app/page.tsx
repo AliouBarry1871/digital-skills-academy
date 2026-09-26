@@ -173,7 +173,12 @@ export default function HomePage() {
       course.description.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesCategory =
-      selectedCategory === 'Tous' || course.category === selectedCategory;
+      selectedCategory === 'Tous' ||
+      course.category.toLowerCase().includes(selectedCategory.toLowerCase()) ||
+      (selectedCategory === 'Python' && (course.category === 'Programmation' || course.title.toLowerCase().includes('python'))) ||
+      (selectedCategory === 'Développement' && (course.category.toLowerCase().includes('développement') || course.category.toLowerCase().includes('web'))) ||
+      (selectedCategory === 'Bureautique' && course.category.toLowerCase().includes('bureautique')) ||
+      (selectedCategory === 'Cyber-sécurité' && (course.category.toLowerCase().includes('cyber') || course.category.toLowerCase().includes('sécurité')));
 
     const matchesType =
       courseFilter === 'all'
