@@ -1,0 +1,172 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 3317 >>
+stream
+0.047 0.07 0.133 rg
+0 760 595.28 82 re f
+0.96 0.62 0.04 rg
+0 756 595.28 4 re f
+BT
+/F2 20 Tf
+1 1 1 rg
+40 802 Td (DIGITAL SKILLS ACADEMY) Tj
+/F1 9 Tf
+0.96 0.62 0.04 rg
+0 -15 Td (INSTITUT INTERNATIONAL DES COMPETENCES NUMERIQUES) Tj
+ET
+BT
+/F2 10 Tf
+0.15 0.45 0.85 rg
+40 730 Td (SUPPORT DE COURS OFFICIEL - DOCUMENT #1 | CYBER-SECURITE) Tj
+ET
+BT
+/F2 15 Tf
+0.08 0.12 0.2 rg
+40 702 Td (Guide 1 : Recommandations de Securite pour les Systemes Windows \(AN) Tj
+ET
+0.96 0.97 0.99 rg
+40 635 515.28 50 re f
+0.8 0.86 0.94 RG 1 w
+40 635 515.28 50 re S
+BT
+/F2 9 Tf
+0.1 0.3 0.6 rg
+52 668 Td (RESUME DU LIVRET PEDAGOGIQUE :) Tj
+/F1 9 Tf
+0.25 0.3 0.4 rg
+0 -14 Td (Guide complet pour durcir la configuration d'un poste de travail d'entreprise....) Tj
+ET
+BT
+/F2 11 Tf
+0.05 0.15 0.35 rg
+40 605 Td (1. PRINCIPES FONDAMENTAUX DE SECURITE DES SYSTEMES) Tj
+ET
+BT
+/F1 9.5 Tf
+0.2 0.25 0.3 rg
+55 589 Td (- Identification precise des actifs informatiques et classification des donnees sensibles) Tj
+ET
+BT
+/F1 9.5 Tf
+0.2 0.25 0.3 rg
+55 574 Td (- Gestion stricte des acces et mise en oeuvre du principe du moindre privilege) Tj
+ET
+BT
+/F1 9.5 Tf
+0.2 0.25 0.3 rg
+55 559 Td (- Application rigoureuse des correctifs de securite sur l ensemble des postes et serveurs) Tj
+ET
+BT
+/F2 11 Tf
+0.05 0.15 0.35 rg
+40 536 Td (2. MESURES TECHNIQUES & HYGIENE NUMERIQUE) Tj
+ET
+BT
+/F1 9.5 Tf
+0.2 0.25 0.3 rg
+55 520 Td (- Activation systematique du pare-feu et filtrage des connexions entrantes suspectes) Tj
+ET
+BT
+/F1 9.5 Tf
+0.2 0.25 0.3 rg
+55 505 Td (- Deploiement de l authentification a double facteur \(MFA\) sur tous les comptes d administ) Tj
+ET
+BT
+/F1 9.5 Tf
+0.2 0.25 0.3 rg
+55 490 Td (- Mise en oeuvre d une strategie de sauvegarde redondante 3-2-1 avec copies isolees) Tj
+ET
+BT
+/F2 11 Tf
+0.05 0.15 0.35 rg
+40 467 Td (3. PROTOCOLES DE REACTION FACE AUX INCIDENTS & PHISHING) Tj
+ET
+BT
+/F1 9.5 Tf
+0.2 0.25 0.3 rg
+55 451 Td (- Verification systematique des en-tetes d expedition et des liens URL avant tout clic) Tj
+ET
+BT
+/F1 9.5 Tf
+0.2 0.25 0.3 rg
+55 436 Td (- Procedure d isolement immediat du reseau en cas de detection d un rancongiciel \(ransomwar) Tj
+ET
+BT
+/F1 9.5 Tf
+0.2 0.25 0.3 rg
+55 421 Td (- Consignation des preuves techniques et notification rapide a l equipe de securite) Tj
+ET
+BT
+/F2 11 Tf
+0.05 0.15 0.35 rg
+40 398 Td (4. CHECKLIST PRATIQUE D AUDIT & RECOMMANDATIONS ANSSI) Tj
+ET
+BT
+/F1 9.5 Tf
+0.2 0.25 0.3 rg
+55 382 Td (- Changer systematiquement les identifiants par defaut de tous les equipements reseau) Tj
+ET
+BT
+/F1 9.5 Tf
+0.2 0.25 0.3 rg
+55 367 Td (- Chiffrer les supports amovibles \(cles USB, disques durs portables\) en transit) Tj
+ET
+BT
+/F1 9.5 Tf
+0.2 0.25 0.3 rg
+55 352 Td (- Sensibiliser regulierement les collaborateurs aux vecteurs d ingenierie sociale) Tj
+ET
+0.98 0.96 0.92 rg
+40 60 515.28 45 re f
+0.95 0.7 0.2 RG 1 w
+40 60 515.28 45 re S
+BT
+/F2 9.5 Tf
+0.7 0.4 0.05 rg
+52 88 Td (VALIDATION ET EVALUATION :) Tj
+/F1 8.5 Tf
+0.35 0.3 0.2 rg
+0 -13 Td (Conservez ce document pour reviser les 10 questions de l examen de certification sur Digital Skills Academy.) Tj
+ET
+0.93 0.94 0.96 rg
+0 0 595.28 35 re f
+0.96 0.62 0.04 rg
+0 33 595.28 2 re f
+BT
+/F1 7.5 Tf
+0.4 0.45 0.5 rg
+40 14 Td (Digital Skills Academy - Plateforme Internationale d Enseignement Certifie - Tous droits reserves) Tj
+475 14 Td (Document Verifie - 100% Officiel) Tj
+ET
+
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000257 00000 n 
+0000003626 00000 n 
+0000003696 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+3771
+%%EOF
